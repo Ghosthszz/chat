@@ -1,122 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
+!DOCTYPE html>
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stars</title>
-<style>
-  body {
-    font-family: Consolas, monospace;
-    background-color: #1e1e1e;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-  }
-  .server-box {
-    background-color: #292929;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-    padding: 20px;
-    text-align: center;
-  }
-  .status {
-    font-size: 24px;
-    font-weight: bold;
-    color: #e74c3c;
-    margin-bottom: 10px;
-  }
-  .server-icon {
-    font-size: 64px;
-    color: #e74c3c;
-    margin-bottom: 20px;
-    animation: floatCloud 2s infinite alternate;
-  }
-  .highlight {
-    display: inline-block;
-    background-color: #FFCC00;
-    padding: 2px 5px;
-    border-radius: 5px;
-    animation: blinkText 2s infinite;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  @keyframes floatCloud {
-    0% {
-      transform: translateY(0);
-    }
-    100% {
-      transform: translateY(-10px);
-    }
-  }
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0" />
+    <link rel="stylesheet" href="./css/style.css">
 
-  @keyframes blinkText {
-    0%, 100% {
-      opacity: 0;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
-  
-  footer {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    text-align: center;
-    background-color: #292929;
-    color: #888;
-    padding: 10px 0;
-  }
-  
-  /* Estilos para o timer */
-  #timer {
-    font-size: 18px;
-    color: #3498db;
-    margin-top: 10px;
-    font-weight: bold;
-  }
-</style>
+    <title>Chat</title>
 </head>
 <body>
-  <div class="server-box">
-    <div class="server-icon">&#9729;</div>
-    <div class="status">Servidor Fora do Ar</div>
-    <p>:(</p>
-    <p class="highlight">Estamos trabalhando nisso!</p>
-    <div id="timer">Tempo estimado: 10:00:00</div>
-  </div>
+   
+    <section class="container">
 
-  <footer>
-    &copy; 2023 @Ghostszz_ Todos os direitos reservados.
-  </footer>
+        <section class="login">
+            <h2>Login</h2>
+            <form class="login__form">
+                <input type="text" class="login__input" placeholder="Seu nome" required />
+                <button type="submit" class="login__button">Entrar</button>
+            </form>
+        </section>
 
-  <script>
-    function updateTimer() {
-      const timerElement = document.getElementById('timer');
-      const endTime = new Date().getTime() + 10 * 60 * 60 * 1000;
+        <section class="chat">
+            <section class="chat__messages">
+                <!-- <div class="message--self">Hello, World!</div>
 
-      function update() {
-        const currentTime = new Date().getTime();
-        const timeRemaining = endTime - currentTime;
+                <div class="message--other">
+                    <span class="message--sender">Manual do Dev</span>
+                    Olá, Mundo!
+                </div> -->
+            </section>
 
-        const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
-        const minutes = Math.floor((timeRemaining % (60 * 60 * 1000)) / (60 * 1000));
-        const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
+            <form class="chat__form">
+                <input type="text" class="chat__input" placeholder="Digite uma mensagem" required />
+                <button type="submit" class="chat__button">
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+            </form>
+        </section>
 
-        timerElement.textContent = `Tempo estimado: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    </section>
 
-        if (timeRemaining <= 0) {
-          clearInterval(interval);
-          timerElement.textContent = 'Tempo esgotado';
-        }
-      }
-
-      const interval = setInterval(update, 1000);
-      update();
-    }
-
-    updateTimer();
-  </script>
+    <script src="./js/script.js"></script>
 </body>
 </html>
