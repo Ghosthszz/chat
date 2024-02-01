@@ -87,20 +87,21 @@ const lidarComLogin = (evento) => {
     user.nome = loginInput.value
     user.cor = obterCorAleatoria()
 
+    // Criar uma instância do WebSocket antes de enviar a mensagem de boas-vindas
+    websocket = new WebSocket("wss://chat-ghosthszz.onrender.com")
+    websocket.onmessage = processarMensagem
+
     // Criar e enviar uma mensagem de boas-vindas
     const mensagemBoasVindas = {
         userId: user.id,
         userName: "Sistema",
-        userColor: "black", // Você pode escolher uma cor para mensagens do sistema
+        userColor: "blue", // Você pode escolher uma cor para mensagens do sistema
         content: `${user.nome} entrou no chat!`
     }
     websocket.send(JSON.stringify(mensagemBoasVindas))
 
     login.style.display = "none"
     chat.style.display = "flex"
-
-    websocket = new WebSocket("wss://chat-ghosthszz.onrender.com")
-    websocket.onmessage = processarMensagem
 }
 
 const enviarMensagem = (evento) => {
