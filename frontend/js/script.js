@@ -88,7 +88,7 @@ const lidarComLogin = (evento) => {
     user.cor = obterCorAleatoria()
 
     // Criar uma instância do WebSocket antes de enviar a mensagem de boas-vindas
-    websocket = new WebSocket("wss://chat-ghosthszz.onrender.com")
+    websocket = new WebSocket("wss://chat2-backend2.onrender.com")
     websocket.onmessage = processarMensagem
 
     // Criar e enviar uma mensagem de boas-vindas
