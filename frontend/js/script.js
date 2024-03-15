@@ -97,15 +97,17 @@ const handleLogin = (event) => {
     websocket.onopen = () => {
         console.log("Conexão WebSocket estabelecida com sucesso.");
 
-const entryMessage = {
+ const entryMessage = {
             userId: user.id,
-            userName: `<div style="display: inline-block; margin-right: 30px;">
-                          <img src="https://seashield.shop/sea.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;">
-                          <h1 style="display: inline-block; vertical-align: middle; font-size: 15px; margin: 0;">Sistema</h1>
-                      </div>`,
+            userName: `<div style="display: inline-block; margin-right: 30px; border-radius: 90%;">
+            <img src="images/sistema.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;">
+            <h1 style="display: inline-block; vertical-align: middle; font-size: 15px; margin: 0;">Sistema</h1>
+        </div>
+        `,
             userColor: "#7D5AC1",
             content: `${user.name} entrou no chat!`
         };
+        
 
         console.log("Enviando mensagem de entrada:", entryMessage);
         websocket.send(JSON.stringify(entryMessage));
