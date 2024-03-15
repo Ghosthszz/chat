@@ -1,123 +1,128 @@
 // Elementos de login
-const login = document.querySelector(".login")
-const loginForm = login.querySelector(".login__form")
-const loginInput = login.querySelector(".login__input")
+const login = document.querySelector(".login");
+const loginForm = login.querySelector(".login__form");
+const loginInput = login.querySelector(".login__input");
 
 // Elementos do chat
-const chat = document.querySelector(".chat")
-const chatForm = chat.querySelector(".chat__form")
-const chatInput = chat.querySelector(".chat__input")
-const chatMessages = chat.querySelector(".chat__messages")
+const chat = document.querySelector(".chat");
+const chatForm = chat.querySelector(".chat__form");
+const chatInput = chat.querySelector(".chat__input");
+const chatMessages = chat.querySelector(".chat__messages");
 
-const cores = [
+const colors = [
     "cadetblue",
     "darkgoldenrod",
     "cornflowerblue",
     "darkkhaki",
     "hotpink",
     "gold"
-]
+];
 
-const user = { id: "", nome: "", cor: "" }
+const user = { id: "", name: "", color: "" };
 
-let websocket
+let websocket;
 
-const criarElementoMensagemPropria = (conteudo) => {
-    const div = document.createElement("div")
+const createMessageSelfElement = (content) => {
+    const div = document.createElement("div");
 
-    div.classList.add("message--self")
-    div.innerHTML = conteudo
+    div.classList.add("message--self");
+    div.innerHTML = content;
 
-    return div
-}
+    return div;
+};
 
-const criarElementoMensagemOutro = (conteudo, remetente, corRemetente) => {
-    const div = document.createElement("div")
-    const span = document.createElement("span")
+const createMessageOtherElement = (content, sender, senderColor) => {
+    const div = document.createElement("div");
+    const span = document.createElement("span");
 
-    div.classList.add("message--other")
+    div.classList.add("message--other");
 
-    span.classList.add("message--sender")
-    span.style.color = corRemetente
+    span.classList.add("message--sender");
+    span.style.color = senderColor;
 
-    div.appendChild(span)
+    div.appendChild(span);
 
-    span.innerHTML = remetente
-    div.innerHTML += conteudo
+    span.innerHTML = sender;
+    div.innerHTML += content;
 
-    return div
-}
+    return div;
+};
 
-const obterCorAleatoria = () => {
-    const indiceAleatorio = Math.floor(Math.random() * cores.length)
-    return cores[indiceAleatorio]
-}
+const getRandomColor = () => {
+    const randomIndex = Math.floor(Math.random() * colors.length);
+    return colors[randomIndex];
+};
 
-const rolarTela = () => {
+const scrollScreen = () => {
     window.scrollTo({
         top: document.body.scrollHeight,
         behavior: "smooth"
-    })
-}
+    });
+};
 
-const processarMensagem = ({ data }) => {
-    const { userId, userName, userColor, content } = JSON.parse(data)
+const playNotificationSound = () => {
+    const audio = new Audio("./sounds/aviso.mp3");
+    audio.play();
+};
 
-    if (userName === "Sistema") {
-        // Mensagens do sistema (por exemplo, mensagens de boas-vindas)
-        const mensagemSistema = criarElementoMensagemOutro(content, userName, userColor)
-        chatMessages.appendChild(mensagemSistema)
-    } else {
-        // Mensagens do usuário
-        const mensagem =
-            userId == user.id
-                ? criarElementoMensagemPropria(content)
-                : criarElementoMensagemOutro(content, userName, userColor)
+const processMessage = ({ data }) => {
+    const { userId, userName, userColor, content } = JSON.parse(data);
 
-        chatMessages.appendChild(mensagem)
+    const isCurrentUser = userId === user.id;
+
+    const message = createMessageOtherElement(content, userName, userColor);
+
+    chatMessages.appendChild(message);
+
+    scrollScreen();
+
+    if (!isCurrentUser) {
+        console.log("Nova mensagem recebida:", content);
+        playNotificationSound();
     }
+};
 
-    rolarTela()
-}
+const handleLogin = (event) => {
+    event.preventDefault();
 
-const lidarComLogin = (evento) => {
-    evento.preventDefault()
+    user.id = crypto.randomUUID();
+    user.name = loginInput.value;
+    user.color = getRandomColor();
 
-    user.id = crypto.randomUUID()
-    user.nome = loginInput.value
-    user.cor = obterCorAleatoria()
+    login.style.display = "none";
+    chat.style.display = "flex";
 
-    // Criar uma instância do WebSocket antes de enviar a mensagem de boas-vindas
-    websocket = new WebSocket("wss://localhosth:10000")
-    websocket.onmessage = processarMensagem
+    websocket = new WebSocket("wss://chat-ghosthszz.onrender.com");
+    websocket.onmessage = processMessage;
+    websocket.onopen = () => {
+        console.log("Conexão WebSocket estabelecida com sucesso.");
 
-    // Criar e enviar uma mensagem de boas-vindas
-    const mensagemBoasVindas = {
+        const entryMessage = {
+            userId: user.id,
+            userName: "Sistema",
+            userColor: "#7D5AC1",
+            content: `${user.name} entrou no chat!`
+        };
+
+        console.log("Enviando mensagem de entrada:", entryMessage);
+        websocket.send(JSON.stringify(entryMessage));
+    };
+};
+
+const sendMessage = (event) => {
+    event.preventDefault();
+
+    const message = {
         userId: user.id,
-        userName: "Sistema",
-        userColor: "blue", // Você pode escolher uma cor para mensagens do sistema
-        content: `${user.nome} entrou no chat!`
-    }
-    websocket.send(JSON.stringify(mensagemBoasVindas))
-
-    login.style.display = "none"
-    chat.style.display = "flex"
-}
-
-const enviarMensagem = (evento) => {
-    evento.preventDefault()
-
-    const mensagem = {
-        userId: user.id,
-        userName: user.nome,
-        userColor: user.cor,
+        userName: user.name,
+        userColor: user.color,
         content: chatInput.value
-    }
+    };
 
-    websocket.send(JSON.stringify(mensagem))
+    websocket.send(JSON.stringify(message));
 
-    chatInput.value = ""
-}
+    chatInput.value = "";
+};
 
-loginForm.addEventListener("submit", lidarComLogin)
-chatForm.addEventListener("submit", enviarMensagem)
+loginForm.addEventListener("submit", handleLogin);
+chatForm.addEventListener("submit", sendMessage);
