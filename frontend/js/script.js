@@ -6,7 +6,7 @@ const loginInput = login.querySelector(".login__input");
 // Elementos do chat
 const chat = document.querySelector(".chat");
 const chatForm = chat.querySelector(".chat__form");
-const chatInput = chat.querySelector(".chat__input");
+const chatInput = chat.querySelector(".chat__input")
 const chatMessages = chat.querySelector(".chat__messages");
 
 const colors = [
