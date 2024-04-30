@@ -6,7 +6,7 @@ const loginInput = login.querySelector(".login__input");
 // Elementos do chat
 const chat = document.querySelector(".chat");
 const chatForm = chat.querySelector(".chat__form");
-const chatInput = chat.querySelector(".chat__input")
+const chatInput = chat.querySelector(".chat__input");
 const chatMessages = chat.querySelector(".chat__messages");
 
 const colors = [
@@ -70,7 +70,10 @@ const processMessage = ({ data }) => {
 
     const isCurrentUser = userId === user.id;
 
-    const message = createMessageOtherElement(content, userName, userColor);
+    // Modificando a cor do texto da mensagem dependendo do remetente
+    const message = isCurrentUser ?
+        createMessageSelfElement(content) :
+        createMessageOtherElement(content, userName, userColor);
 
     chatMessages.appendChild(message);
 
@@ -97,7 +100,7 @@ const handleLogin = (event) => {
     websocket.onopen = () => {
         console.log("Conexão WebSocket estabelecida com sucesso.");
 
- const entryMessage = {
+        const entryMessage = {
             userId: user.id,
             userName: `<div style="display: inline-block; margin-right: 30px; border-radius: 90%;">
             <img src="images/sistema.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;">
@@ -107,7 +110,6 @@ const handleLogin = (event) => {
             userColor: "#7D5AC1",
             content: `${user.name} entrou no chat!`
         };
-        
 
         console.log("Enviando mensagem de entrada:", entryMessage);
         websocket.send(JSON.stringify(entryMessage));
@@ -117,11 +119,17 @@ const handleLogin = (event) => {
 const sendMessage = (event) => {
     event.preventDefault();
 
+    // Obtendo o valor da cor digitada pelo usuário
+    const corInput = document.getElementById("corInput").value;
+    // Construindo o estilo CSS com a cor selecionada
+    const style = `color: ${corInput};`;
+
+    // Construindo a mensagem com o estilo CSS da cor selecionada
     const message = {
         userId: user.id,
         userName: user.name,
         userColor: user.color,
-        content: chatInput.value
+        content: `<h1 style="${style}">${chatInput.value}</h1>` // Incorporando o estilo CSS
     };
 
     websocket.send(JSON.stringify(message));
