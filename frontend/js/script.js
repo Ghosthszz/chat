@@ -1,3 +1,69 @@
+// Função para verificar se o servidor local está respondendo via WebSocket
+const checkServerStatusWebSocket = () => {
+    return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            reject("Tempo limite excedido");
+        }, 2000); // Tempo limite de 2 segundos
+
+        const socket = new WebSocket("ws://localhost:8080");
+
+        socket.onopen = () => {
+            clearTimeout(timeout); // Cancela o timeout
+            socket.close();
+            resolve(true);
+            document.cookie = "server=true";
+        };
+
+        const handleLoginError = (event) => {
+            event.preventDefault();
+            alert("Iniciando servidores, aguarde...");
+        };
+
+        // Adiciona um event listener para o evento de erro de conexão com o servidor
+        socket.onerror = () => {
+            clearTimeout(timeout); // Cancela o timeout
+            reject("Erro ao conectar ao servidor");
+            loginForm.removeEventListener("submit", handleLogin); // Remove o listener existente
+            loginForm.addEventListener("submit", handleLoginError); // Adiciona um novo listener para tratar o erro
+        };
+    });
+};
+
+// Função para lidar com o carregamento da página
+const handlePageLoad = async () => {
+    try {
+        await checkServerStatusWebSocket(); // Verifica se o servidor local está respondendo via WebSocket
+
+        // Se o servidor local está respondendo, mostra o formulário de login
+        const loginSection = document.querySelector(".login");
+        loginSection.style.display = "block";
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+// Função para enviar mensagem com estilo personalizado
+const sendMessage = (event) => {
+    event.preventDefault();
+
+    // Obtendo o valor da cor digitada pelo usuário
+    const corInput = document.getElementById("corInput").value;
+    // Construindo o estilo CSS com a cor selecionada
+    const style = `color: ${corInput};`;
+
+    // Construindo a mensagem com o estilo CSS da cor selecionada
+    const message = {
+        userId: user.id,
+        userName: user.name,
+        userColor: user.color,
+        content: `<h1 style="${style}">${chatInput.value}</h1>` // Incorporando o estilo CSS
+    };
+
+    websocket.send(JSON.stringify(message));
+
+    chatInput.value = "";
+};
+
 // Elementos de login
 const login = document.querySelector(".login");
 const loginForm = login.querySelector(".login__form");
@@ -95,7 +161,7 @@ const handleLogin = (event) => {
     login.style.display = "none";
     chat.style.display = "flex";
 
-    websocket = new WebSocket("wss://chat-ghosthszz.onrender.com");
+    websocket = new WebSocket("ws://localhost:8080");
     websocket.onmessage = processMessage;
     websocket.onopen = () => {
         console.log("Conexão WebSocket estabelecida com sucesso.");
@@ -103,10 +169,10 @@ const handleLogin = (event) => {
         const entryMessage = {
             userId: user.id,
             userName: `<div style="display: inline-block; margin-right: 30px; border-radius: 90%;">
-            <img src="images/sistema.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;">
-            <h1 style="display: inline-block; vertical-align: middle; font-size: 15px; margin: 0;">Sistema</h1>
-        </div>
-        `,
+                <img src="images/sistema.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;">
+                <h1 style="display: inline-block; vertical-align: middle; font-size: 15px; margin: 0;">Sistema</h1>
+            </div>
+            `,
             userColor: "#7D5AC1",
             content: `${user.name} entrou no chat!`
         };
@@ -116,26 +182,43 @@ const handleLogin = (event) => {
     };
 };
 
-const sendMessage = (event) => {
-    event.preventDefault();
+// Remove todos os cookies
+window.addEventListener("beforeunload", () => {
+    const cookies = document.cookie.split(";");
 
-    // Obtendo o valor da cor digitada pelo usuário
-    const corInput = document.getElementById("corInput").value;
-    // Construindo o estilo CSS com a cor selecionada
-    const style = `color: ${corInput};`;
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+});
 
-    // Construindo a mensagem com o estilo CSS da cor selecionada
-    const message = {
-        userId: user.id,
-        userName: user.name,
-        userColor: user.color,
-        content: `<h1 style="${style}">${chatInput.value}</h1>` // Incorporando o estilo CSS
+// Adiciona um event listener para o evento de erro de conexão com o servidor
+loginForm.addEventListener("submit", handleLogin);
+
+// Adiciona um event listener para o input de arquivo para enviar automaticamente a mensagem ao selecionar um arquivo
+const fileInput = document.getElementById('file');
+fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        const dataURL = reader.result;
+        const message = {
+            userId: user.id,
+            userName: user.name,
+            userColor: user.color,
+            content: `<img src="${dataURL}" alt="Imagem do usuário" style="max-width: 200px; height: auto;">`
+        };
+
+        websocket.send(JSON.stringify(message));
     };
 
-    websocket.send(JSON.stringify(message));
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+});
 
-    chatInput.value = "";
-};
-
-loginForm.addEventListener("submit", handleLogin);
-chatForm.addEventListener("submit", sendMessage);
+// Adiciona um event listener para o formulário de envio de mensagem
+chatForm.addEventListener('submit', sendMessage);
