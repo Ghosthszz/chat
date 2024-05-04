@@ -5,7 +5,7 @@ const checkServerStatusWebSocket = () => {
             reject("Tempo limite excedido");
         }, 2000); // Tempo limite de 2 segundos
 
-        const socket = new WebSocket("wss://https://chat-ghosthszz.onrender.com");
+        const socket = new WebSocket("wss://chat-ghosthszz.onrender.com");
 
         socket.onopen = () => {
             clearTimeout(timeout); // Cancela o timeout
@@ -161,7 +161,7 @@ const handleLogin = (event) => {
     login.style.display = "none";
     chat.style.display = "flex";
 
-    websocket = new WebSocket("wss://https://chat-ghosthszz.onrender.com");
+    websocket = new WebSocket("wss://chat-ghosthszz.onrender.com");
     websocket.onmessage = processMessage;
     websocket.onopen = () => {
         console.log("Conexão WebSocket estabelecida com sucesso.");
