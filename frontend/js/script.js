@@ -161,7 +161,7 @@ const handleLogin = (event) => {
     login.style.display = "none";
     chat.style.display = "flex";
 
-    websocket = new WebSocket("wss://chat-ghosthszz.onrender.com");
+    websocket = new WebSocket("ws://localhost:8080");
     websocket.onmessage = processMessage;
     websocket.onopen = () => {
         console.log("Conexão WebSocket estabelecida com sucesso.");
@@ -204,12 +204,20 @@ fileInput.addEventListener('change', () => {
     const reader = new FileReader();
 
     reader.onload = () => {
-        const dataURL = reader.result;
+        let content;
+        if (file.type.startsWith('image/')) {
+            content = `<img src="${reader.result}" alt="Imagem do usuário" style="max-width: 200px; height: auto;">`;
+        } else if (file.type.startsWith('video/')) {
+            content = `<video controls style="max-width: 200px; height: auto;">
+                          <source src="${reader.result}" type="${file.type}">
+                       </video>`;
+        }
+
         const message = {
             userId: user.id,
             userName: user.name,
             userColor: user.color,
-            content: `<img src="${dataURL}" alt="Imagem do usuário" style="max-width: 200px; height: auto;">`
+            content: content
         };
 
         websocket.send(JSON.stringify(message));
@@ -222,3 +230,38 @@ fileInput.addEventListener('change', () => {
 
 // Adiciona um event listener para o formulário de envio de mensagem
 chatForm.addEventListener('submit', sendMessage);
+
+// Função para verificar o tamanho do arquivo de vídeo
+const handleVideoUpload = (event) => {
+    event.preventDefault();
+
+    const videoFile = document.getElementById('video-file').files[0];
+    const maxSizeInMB = 200;
+
+    if (videoFile.size > maxSizeInMB * 1024 * 1024) {
+        document.getElementById('alert-message').textContent = "Escolha um ficheiro menor de 200 MB";
+    } else {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            const message = {
+                userId: user.id,
+                userName: user.name,
+                userColor: user.color,
+                content: `<video controls style="max-width: 200px; height: auto;">
+                            <source src="${reader.result}" type="${videoFile.type}">
+                          </video>`
+            };
+
+            websocket.send(JSON.stringify(message));
+        };
+
+        if (videoFile) {
+            reader.readAsDataURL(videoFile);
+        }
+    }
+};
+
+// Adiciona um event listener para o formulário de upload de vídeo
+const videoUploadForm = document.getElementById('video-upload-form');
+videoUploadForm.addEventListener('submit', handleVideoUpload);
