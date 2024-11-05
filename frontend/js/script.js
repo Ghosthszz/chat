@@ -86,8 +86,8 @@ const processMessage = ({ data }) => {
     const isCurrentUser = userId === user.id;
 
     // Modificando a cor do texto da mensagem dependendo do remetente
-    const message = isCurrentUser ? 
-        createMessageSelfElement(content) : 
+    const message = isCurrentUser ?
+        createMessageSelfElement(content) :
         createMessageOtherElement(content, userName, userColor);
 
     chatMessages.appendChild(message);
