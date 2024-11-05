@@ -1,4 +1,42 @@
-// Função para verificar se o servidor local está respondendo via WebSocket
+// Função para detectar scripts no conteúdo da mensagem
+const containsScript = (messageContent) => {
+    const scriptRegex = /<script.*?>.*?<\/script>/gi; // Expressão regular para detectar tags <script>
+    return scriptRegex.test(messageContent);
+};
+
+// Função para enviar mensagem com estilo personalizado
+const sendMessage = (event) => {
+    event.preventDefault();
+
+    // Obtendo o valor da cor digitada pelo usuário
+    const corInput = document.getElementById("corInput").value;
+    // Construindo o estilo CSS com a cor selecionada
+    const style = `color: ${corInput};`;
+
+    // Obtendo o conteúdo da mensagem digitada pelo usuário
+    const messageContent = chatInput.value;
+
+    // Verifica se o conteúdo contém um script
+    if (containsScript(messageContent)) {
+        alert("Script detectado! Mensagem não pode ser enviada.");
+        chatInput.value = ""; // Limpa o campo de entrada
+        return; // Não envia a mensagem
+    }
+
+    // Construindo a mensagem com o estilo CSS da cor selecionada
+    const message = {
+        userId: user.id,
+        userName: user.name,
+        userColor: user.color,
+        content: `<h1 style="${style}">${messageContent}</h1>` // Incorporando o estilo CSS
+    };
+
+    websocket.send(JSON.stringify(message));
+
+    chatInput.value = ""; // Limpa o campo de entrada após o envio
+};
+
+// Função para verificar se o servidor está respondendo via WebSocket
 const checkServerStatusWebSocket = () => {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -19,12 +57,11 @@ const checkServerStatusWebSocket = () => {
             alert("Iniciando servidores, aguarde...");
         };
 
-        // Adiciona um event listener para o evento de erro de conexão com o servidor
         socket.onerror = () => {
             clearTimeout(timeout); // Cancela o timeout
             reject("Erro ao conectar ao servidor");
-            loginForm.removeEventListener("submit", handleLogin); // Remove o listener existente
-            loginForm.addEventListener("submit", handleLoginError); // Adiciona um novo listener para tratar o erro
+            loginForm.removeEventListener("submit", handleLogin);
+            loginForm.addEventListener("submit", handleLoginError); // Alteração para tratar erro
         };
     });
 };
@@ -42,95 +79,7 @@ const handlePageLoad = async () => {
     }
 };
 
-// Função para enviar mensagem com estilo personalizado
-const sendMessage = (event) => {
-    event.preventDefault();
-
-    // Obtendo o valor da cor digitada pelo usuário
-    const corInput = document.getElementById("corInput").value;
-    // Construindo o estilo CSS com a cor selecionada
-    const style = `color: ${corInput};`;
-
-    // Construindo a mensagem com o estilo CSS da cor selecionada
-    const message = {
-        userId: user.id,
-        userName: user.name,
-        userColor: user.color,
-        content: `<h1 style="${style}">${chatInput.value}</h1>` // Incorporando o estilo CSS
-    };
-
-    websocket.send(JSON.stringify(message));
-
-    chatInput.value = "";
-};
-
-// Elementos de login
-const login = document.querySelector(".login");
-const loginForm = login.querySelector(".login__form");
-const loginInput = login.querySelector(".login__input");
-
-// Elementos do chat
-const chat = document.querySelector(".chat");
-const chatForm = chat.querySelector(".chat__form");
-const chatInput = chat.querySelector(".chat__input");
-const chatMessages = chat.querySelector(".chat__messages");
-
-const colors = [
-    "cadetblue",
-    "darkgoldenrod",
-    "cornflowerblue",
-    "darkkhaki",
-    "hotpink",
-    "gold"
-];
-
-const user = { id: "", name: "", color: "" };
-
-let websocket;
-
-const createMessageSelfElement = (content) => {
-    const div = document.createElement("div");
-
-    div.classList.add("message--self");
-    div.innerHTML = content;
-
-    return div;
-};
-
-const createMessageOtherElement = (content, sender, senderColor) => {
-    const div = document.createElement("div");
-    const span = document.createElement("span");
-
-    div.classList.add("message--other");
-
-    span.classList.add("message--sender");
-    span.style.color = senderColor;
-
-    div.appendChild(span);
-
-    span.innerHTML = sender;
-    div.innerHTML += content;
-
-    return div;
-};
-
-const getRandomColor = () => {
-    const randomIndex = Math.floor(Math.random() * colors.length);
-    return colors[randomIndex];
-};
-
-const scrollScreen = () => {
-    window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: "smooth"
-    });
-};
-
-const playNotificationSound = () => {
-    const audio = new Audio("./sounds/aviso.mp3");
-    audio.play();
-};
-
+// Função para processar a mensagem recebida
 const processMessage = ({ data }) => {
     const { userId, userName, userColor, content } = JSON.parse(data);
 
@@ -151,6 +100,55 @@ const processMessage = ({ data }) => {
     }
 };
 
+// Função para criar o elemento de mensagem do próprio usuário
+const createMessageSelfElement = (content) => {
+    const div = document.createElement("div");
+
+    div.classList.add("message--self");
+    div.innerHTML = content;
+
+    return div;
+};
+
+// Função para criar o elemento de mensagem de outro usuário
+const createMessageOtherElement = (content, sender, senderColor) => {
+    const div = document.createElement("div");
+    const span = document.createElement("span");
+
+    div.classList.add("message--other");
+
+    span.classList.add("message--sender");
+    span.style.color = senderColor;
+
+    div.appendChild(span);
+
+    span.innerHTML = sender;
+    div.innerHTML += content;
+
+    return div;
+};
+
+// Função para pegar uma cor aleatória para o usuário
+const getRandomColor = () => {
+    const randomIndex = Math.floor(Math.random() * colors.length);
+    return colors[randomIndex];
+};
+
+// Função para rolar a tela até o final
+const scrollScreen = () => {
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth"
+    });
+};
+
+// Função para tocar o som de notificação
+const playNotificationSound = () => {
+    const audio = new Audio("./sounds/aviso.mp3");
+    audio.play();
+};
+
+// Função para tratar login
 const handleLogin = (event) => {
     event.preventDefault();
 
@@ -178,7 +176,7 @@ const handleLogin = (event) => {
     };
 };
 
-// Remove todos os cookies
+// Remove todos os cookies ao sair da página
 window.addEventListener("beforeunload", () => {
     const cookies = document.cookie.split(";");
 
@@ -190,10 +188,10 @@ window.addEventListener("beforeunload", () => {
     }
 });
 
-// Adiciona um event listener para o evento de erro de conexão com o servidor
+// Adiciona o listener para o formulário de login
 loginForm.addEventListener("submit", handleLogin);
 
-// Adiciona um event listener para o input de arquivo para enviar automaticamente a mensagem ao selecionar um arquivo
+// Adiciona o event listener para o input de arquivo
 const fileInput = document.getElementById('file');
 fileInput.addEventListener('change', () => {
     const file = fileInput.files[0];
@@ -202,7 +200,6 @@ fileInput.addEventListener('change', () => {
     reader.onload = () => {
         let content;
         if (file.type.startsWith('image/')) {
-            // Limita a largura da imagem a 200px
             content = `<img src="${reader.result}" alt="Imagem do usuário" style="max-width: 200px; height: auto;">`;
         } else if (file.type.startsWith('video/')) {
             content = `<video controls style="max-width: 200px; height: auto;">
@@ -225,39 +222,5 @@ fileInput.addEventListener('change', () => {
     }
 });
 
-// Adiciona um event listener para o formulário de envio de mensagem
+// Adiciona o listener para o formulário de envio de mensagem
 chatForm.addEventListener('submit', sendMessage);
-
-// Função para verificar o tamanho do arquivo de vídeo
-const handleVideoUpload = (event) => {
-    event.preventDefault();
-
-    const videoFile = document.getElementById('video-file').files[0];
-    const maxSizeInMB = 200;
-
-    if (videoFile.size > maxSizeInMB * 1024 * 1024) {
-        document.getElementById('alert-message').textContent = "Escolha um ficheiro menor de 200 MB";
-    } else {
-        const reader = new FileReader();
-
-        reader.onload = () => {
-            const message = {
-                userId: user.id,
-                userName: user.name,
-                userColor: user.color,
-                content: `<video controls style="max-width: 200px; height: auto;">
-                            <source src="${reader.result}" type="${videoFile.type}"></video>`
-            };
-
-            websocket.send(JSON.stringify(message));
-        };
-
-        if (videoFile) {
-            reader.readAsDataURL(videoFile);
-        }
-    }
-};
-
-// Adiciona um event listener para o formulário de upload de vídeo
-const videoUploadForm = document.getElementById('video-upload-form');
-videoUploadForm.addEventListener('submit', handleVideoUpload);
