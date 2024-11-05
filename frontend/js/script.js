@@ -202,8 +202,8 @@ fileInput.addEventListener('change', () => {
     reader.onload = () => {
         let content;
         if (file.type.startsWith('image/')) {
-            // Limita a largura da imagem a 100px
-            content = `<img src="${reader.result}" alt="Imagem do usuário" style="max-width: 100px; height: auto;">`;
+            // Limita a largura da imagem a 250px
+            content = `<img src="${reader.result}" alt="Imagem do usuário" style="max-width: 250px; height: auto;">`;
         } else if (file.type.startsWith('video/')) {
             content = `<video controls style="max-width: 200px; height: auto;">
                           <source src="${reader.result}" type="${file.type}">
