@@ -137,8 +137,8 @@ const processMessage = ({ data }) => {
     const isCurrentUser = userId === user.id;
 
     // Modificando a cor do texto da mensagem dependendo do remetente
-    const message = isCurrentUser ?
-        createMessageSelfElement(content) :
+    const message = isCurrentUser ? 
+        createMessageSelfElement(content) : 
         createMessageOtherElement(content, userName, userColor);
 
     chatMessages.appendChild(message);
@@ -168,11 +168,7 @@ const handleLogin = (event) => {
 
         const entryMessage = {
             userId: user.id,
-            userName: `<div style="display: inline-block; margin-right: 30px; border-radius: 90%;">
-                <img src="images/sistema.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;">
-                <h1 style="display: inline-block; vertical-align: middle; font-size: 15px; margin: 0;">Sistema</h1>
-            </div>
-            `,
+            userName: `<div style="display: inline-block; margin-right: 30px; border-radius: 90%;"><img src="images/sistema.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;"> <h1 style="display: inline-block; vertical-align: middle; font-size: 15px; margin: 0;">Sistema</h1></div>`,
             userColor: "#7D5AC1",
             content: `${user.name} entrou no chat!`
         };
@@ -206,7 +202,8 @@ fileInput.addEventListener('change', () => {
     reader.onload = () => {
         let content;
         if (file.type.startsWith('image/')) {
-            content = `<img src="${reader.result}" alt="Imagem do usuário" style="max-width: 200px; height: auto;">`;
+            // Limita a largura da imagem a 100px
+            content = `<img src="${reader.result}" alt="Imagem do usuário" style="max-width: 100px; height: auto;">`;
         } else if (file.type.startsWith('video/')) {
             content = `<video controls style="max-width: 200px; height: auto;">
                           <source src="${reader.result}" type="${file.type}">
@@ -249,8 +246,7 @@ const handleVideoUpload = (event) => {
                 userName: user.name,
                 userColor: user.color,
                 content: `<video controls style="max-width: 200px; height: auto;">
-                            <source src="${reader.result}" type="${videoFile.type}">
-                          </video>`
+                            <source src="${reader.result}" type="${videoFile.type}"></video>`
             };
 
             websocket.send(JSON.stringify(message));
