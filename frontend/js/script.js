@@ -191,6 +191,7 @@ window.addEventListener("beforeunload", () => {
 // Adiciona o listener para o formulário de login
 loginForm.addEventListener("submit", handleLogin);
 
+// Adiciona o event listener para o input de arquivo
 const fileInput = document.getElementById('file');
 fileInput.addEventListener('change', () => {
     const file = fileInput.files[0];
