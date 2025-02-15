@@ -1,4 +1,4 @@
-// Função para verificar se o servidor local está respondendo via WebSocket
+// FunÃ§Ã£o para verificar se o servidor local estÃ¡ respondendo via WebSocket
 const checkServerStatusWebSocket = () => {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -8,7 +8,7 @@ const checkServerStatusWebSocket = () => {
         const socket = new WebSocket("wss://chat-niha.onrender.com");
 
         socket.onopen = () => {
-            clearTimeout(timeout);
+            clearTimeout(timeout); // Cancela o timeout
             socket.close();
             resolve(true);
             document.cookie = "server=true";
@@ -19,20 +19,22 @@ const checkServerStatusWebSocket = () => {
             alert("Iniciando servidores, aguarde...");
         };
 
-        // Adiciona um event listener para o evento de erro de conexão com o servidor
+        // Adiciona um event listener para o evento de erro de conexÃ£o com o servidor
         socket.onerror = () => {
-            clearTimeout(timeout);
+            clearTimeout(timeout); // Cancela o timeout
             reject("Erro ao conectar ao servidor");
-            loginForm.removeEventListener("submit", handleLogin);
-            loginForm.addEventListener("submit", handleLoginError);
+            loginForm.removeEventListener("submit", handleLogin); // Remove o listener existente
+            loginForm.addEventListener("submit", handleLoginError); // Adiciona um novo listener para tratar o erro
         };
     });
 };
 
-// Função para lidar com o carregamento da página
+// FunÃ§Ã£o para lidar com o carregamento da pÃ¡gina
 const handlePageLoad = async () => {
     try {
-        await checkServerStatusWebSocket();
+        await checkServerStatusWebSocket(); // Verifica se o servidor local estÃ¡ respondendo via WebSocket
+
+        // Se o servidor local estÃ¡ respondendo, mostra o formulÃ¡rio de login
         const loginSection = document.querySelector(".login");
         loginSection.style.display = "block";
     } catch (error) {
@@ -40,21 +42,25 @@ const handlePageLoad = async () => {
     }
 };
 
-// Função para enviar mensagem com estilo personalizado
+// FunÃ§Ã£o para enviar mensagem com estilo personalizado
 const sendMessage = (event) => {
     event.preventDefault();
 
+    // Obtendo o valor da cor digitada pelo usuÃ¡rio
     const corInput = document.getElementById("corInput").value;
+    // Construindo o estilo CSS com a cor selecionada
     const style = `color: ${corInput};`;
 
+    // Construindo a mensagem com o estilo CSS da cor selecionada
     const message = {
         userId: user.id,
         userName: user.name,
         userColor: user.color,
-        content: `<h1 style="${style}">${chatInput.value}</h1>`
+        content: `<h1 style="${style}">${chatInput.value}</h1>` // Incorporando o estilo CSS
     };
 
     websocket.send(JSON.stringify(message));
+
     chatInput.value = "";
 };
 
@@ -69,14 +75,25 @@ const chatForm = chat.querySelector(".chat__form");
 const chatInput = chat.querySelector(".chat__input");
 const chatMessages = chat.querySelector(".chat__messages");
 
-const colors = ["cadetblue", "darkgoldenrod", "cornflowerblue", "darkkhaki", "hotpink", "gold"];
+const colors = [
+    "cadetblue",
+    "darkgoldenrod",
+    "cornflowerblue",
+    "darkkhaki",
+    "hotpink",
+    "gold"
+];
+
 const user = { id: "", name: "", color: "" };
+
 let websocket;
 
 const createMessageSelfElement = (content) => {
     const div = document.createElement("div");
+
     div.classList.add("message--self");
     div.innerHTML = content;
+
     return div;
 };
 
@@ -85,18 +102,21 @@ const createMessageOtherElement = (content, sender, senderColor) => {
     const span = document.createElement("span");
 
     div.classList.add("message--other");
+
     span.classList.add("message--sender");
     span.style.color = senderColor;
 
-    span.innerHTML = sender;
     div.appendChild(span);
+
+    span.innerHTML = sender;
     div.innerHTML += content;
 
     return div;
 };
 
 const getRandomColor = () => {
-    return colors[Math.floor(Math.random() * colors.length)];
+    const randomIndex = Math.floor(Math.random() * colors.length);
+    return colors[randomIndex];
 };
 
 const scrollScreen = () => {
@@ -113,13 +133,16 @@ const playNotificationSound = () => {
 
 const processMessage = ({ data }) => {
     const { userId, userName, userColor, content } = JSON.parse(data);
+
     const isCurrentUser = userId === user.id;
 
+    // Modificando a cor do texto da mensagem dependendo do remetente
     const message = isCurrentUser ? 
         createMessageSelfElement(content) : 
         createMessageOtherElement(content, userName, userColor);
 
     chatMessages.appendChild(message);
+
     scrollScreen();
 
     if (!isCurrentUser) {
@@ -141,40 +164,46 @@ const handleLogin = (event) => {
     websocket = new WebSocket("wss://chat-niha.onrender.com");
     websocket.onmessage = processMessage;
     websocket.onopen = () => {
-        console.log("Conexão WebSocket estabelecida com sucesso.");
+        console.log("ConexÃ£o WebSocket estabelecida com sucesso.");
 
         const entryMessage = {
             userId: user.id,
-            userName: `<div style="display: inline-block; margin-right: 30px; border-radius: 90%;">
-                          <img src="images/sistema.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;">
-                          <h1 style="display: inline-block; vertical-align: middle; font-size: 15px; margin: 0;">Sistema</h1>
-                       </div>`,
+            userName: `<div style="display: inline-block; margin-right: 30px; border-radius: 90%;"><img src="images/sistema.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;"> <h1 style="display: inline-block; vertical-align: middle; font-size: 15px; margin: 0;">Sistema</h1></div>`,
             userColor: "#7D5AC1",
             content: `${user.name} entrou no chat!`
         };
 
+        console.log("Enviando mensagem de entrada:", entryMessage);
         websocket.send(JSON.stringify(entryMessage));
     };
 };
 
-// Remove todos os cookies ao fechar a página
+// Remove todos os cookies
 window.addEventListener("beforeunload", () => {
-    document.cookie.split(";").forEach(cookie => {
-        document.cookie = cookie.split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    });
+    const cookies = document.cookie.split(";");
+
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
 });
 
+// Adiciona um event listener para o evento de erro de conexÃ£o com o servidor
 loginForm.addEventListener("submit", handleLogin);
 
-// Evento para envio de arquivos
-document.getElementById('file').addEventListener('change', () => {
+// Adiciona um event listener para o input de arquivo para enviar automaticamente a mensagem ao selecionar um arquivo
+const fileInput = document.getElementById('file');
+fileInput.addEventListener('change', () => {
     const file = fileInput.files[0];
     const reader = new FileReader();
 
     reader.onload = () => {
         let content;
         if (file.type.startsWith('image/')) {
-            content = `<img src="${reader.result}" id="img_user" alt="Imagem do usuário" style="max-width: 200px; height: auto;">`;
+            // Limita a largura da imagem a 200px
+            content = `<img src="${reader.result}" alt="Imagem do usuÃ¡rio" style="max-width: 200px; height: auto;">`;
         } else if (file.type.startsWith('video/')) {
             content = `<video controls style="max-width: 200px; height: auto;">
                           <source src="${reader.result}" type="${file.type}">
@@ -196,11 +225,11 @@ document.getElementById('file').addEventListener('change', () => {
     }
 });
 
-// Evento para envio de mensagem no chat
+// Adiciona um event listener para o formulÃ¡rio de envio de mensagem
 chatForm.addEventListener('submit', sendMessage);
 
-// Verifica o tamanho do vídeo antes de enviar
-document.getElementById('video-upload-form').addEventListener('submit', (event) => {
+// FunÃ§Ã£o para verificar o tamanho do arquivo de vÃ­deo
+const handleVideoUpload = (event) => {
     event.preventDefault();
 
     const videoFile = document.getElementById('video-file').files[0];
@@ -210,35 +239,27 @@ document.getElementById('video-upload-form').addEventListener('submit', (event) 
         document.getElementById('alert-message').textContent = "Escolha um ficheiro menor de 200 MB";
     } else {
         const reader = new FileReader();
+
         reader.onload = () => {
             const message = {
                 userId: user.id,
                 userName: user.name,
                 userColor: user.color,
                 content: `<video controls style="max-width: 200px; height: auto;">
-                            <source src="${reader.result}" type="${videoFile.type}">
-                          </video>`
+                            <source src="${reader.result}" type="${videoFile.type}"></video>`
             };
+
             websocket.send(JSON.stringify(message));
         };
-        reader.readAsDataURL(videoFile);
-    }
-});
 
-// Função para abrir imagens em tela cheia ao clicar e segurar
-document.addEventListener("DOMContentLoaded", function () {
-    document.addEventListener("mousedown", function (event) {
-        if (event.target.id === "img_user") {
-            event.preventDefault();
-            abrirImagemTelaCheia(event.target.src);
+        if (videoFile) {
+            reader.readAsDataURL(videoFile);
         }
-    });
-
-    function abrirImagemTelaCheia(src) {
-        const overlay = document.createElement("div");
-        overlay.style = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999;";
-        overlay.innerHTML = `<img src="${src}" style="max-width: 90%; max-height: 90%; border-radius: 10px;">`;
-        overlay.addEventListener("click", () => overlay.remove());
-        document.body.appendChild(overlay);
     }
-});
+};
+
+// Adiciona um event listener para o formulÃ¡rio de upload de vÃ­deo
+const videoUploadForm = document.getElementById('video-upload-form');
+videoUploadForm.addEventListener('submit', handleVideoUpload);
+
+// Função para abrir imagens em tela cheia ao clicar e segurar document.addEventListener("DOMContentLoaded", function () { document.addEventListener("mousedown", function (event) { if (event.target.id === "img_user") { event.preventDefault(); abrirImagemTelaCheia(event.target.src); } }); function abrirImagemTelaCheia(src) { const overlay = document.createElement("div"); overlay.style = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999;"; overlay.innerHTML = ``; overlay.addEventListener("click", () => overlay.remove()); document.body.appendChild(overlay); } });
