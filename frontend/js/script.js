@@ -1,4 +1,4 @@
-// FunÃ§Ã£o para verificar se o servidor local estÃ¡ respondendo via WebSocket
+// Função para verificar se o servidor local está respondendo via WebSocket
 const checkServerStatusWebSocket = () => {
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -19,22 +19,22 @@ const checkServerStatusWebSocket = () => {
             alert("Iniciando servidores, aguarde...");
         };
 
-        // Adiciona um event listener para o evento de erro de conexÃ£o com o servidor
+        // Adiciona um event listener para o evento de erro de conexão com o servidor
         socket.onerror = () => {
             clearTimeout(timeout); // Cancela o timeout
             reject("Erro ao conectar ao servidor");
-            loginForm.removeEventListener("submit", handleLogin); // Remove o listener existente
+            loginForm.removeEventListener("submit", handleLogin);
             loginForm.addEventListener("submit", handleLoginError); // Adiciona um novo listener para tratar o erro
         };
     });
 };
 
-// FunÃ§Ã£o para lidar com o carregamento da pÃ¡gina
+// Função para lidar com o carregamento da página
 const handlePageLoad = async () => {
     try {
-        await checkServerStatusWebSocket(); // Verifica se o servidor local estÃ¡ respondendo via WebSocket
+        await checkServerStatusWebSocket(); // Verifica se o servidor local está respondendo via WebSocket
 
-        // Se o servidor local estÃ¡ respondendo, mostra o formulÃ¡rio de login
+        // Se o servidor local está respondendo, mostra o formulário de login
         const loginSection = document.querySelector(".login");
         loginSection.style.display = "block";
     } catch (error) {
@@ -42,26 +42,68 @@ const handlePageLoad = async () => {
     }
 };
 
-// FunÃ§Ã£o para enviar mensagem com estilo personalizado
+// Função para verificar se a sanitização está ativada ou desativada
+function isSanitizationEnabled() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('sanitization') !== 'false'; // Retorna 'true' se sanitização estiver ativada
+}
+
+// Função para verificar e sanitizar o conteúdo, dependendo da configuração de sanitização
+function sanitizeInput(input) {
+    // Verifica se a sanitização está ativada
+    if (!isSanitizationEnabled()) {
+        return input; // Se não estiver ativada, retorna o input sem alterações
+    }
+
+    // Expressão regular para detectar tags maliciosas
+    const maliciousTags = /<(script|iframe|object|embed|style|link|a|img|h1|h2|h3|h4|h5|h6|div).*?>/gi;
+    
+    // Verifica se há tags maliciosas
+    if (maliciousTags.test(input)) {
+        alert("Atenção: Conteúdo malicioso detectado!");
+        return null; // Retorna null para impedir o envio da mensagem
+    }
+
+    // Remove todas as tags maliciosas e permite tags seguras
+    const sanitizedInput = input.replace(maliciousTags, "");
+    return sanitizedInput;
+}
+
+// Exemplo de como utilizar a função
+const userInput = "<script>alert('xss');</script><h1>Olá</h1>";
+const sanitizedInput = sanitizeInput(userInput);
+
+if (sanitizedInput !== null) {
+    console.log("Conteúdo sanitizado:", sanitizedInput);
+} else {
+    console.log("Conteúdo malicioso detectado!");
+}
+
+
+// Função para enviar mensagem com estilo personalizado
 const sendMessage = (event) => {
     event.preventDefault();
 
-    // Obtendo o valor da cor digitada pelo usuÃ¡rio
+    // Obtendo o valor da cor digitada pelo usuário
     const corInput = document.getElementById("corInput").value;
     // Construindo o estilo CSS com a cor selecionada
     const style = `color: ${corInput};`;
 
-    // Construindo a mensagem com o estilo CSS da cor selecionada
+    const sanitizedContent = sanitizeInput(chatInput.value);
+    if (sanitizedContent === null) {
+        // Se o conteúdo for inválido (contém tags maliciosas), não envia a mensagem
+        return;
+    }
+
     const message = {
         userId: user.id,
         userName: user.name,
         userColor: user.color,
-        content: `<h1 style="${style}">${chatInput.value}</h1>` // Incorporando o estilo CSS
+        content: `<h1 style="${style}">${sanitizedContent}</h1>` // Sanitize o conteúdo antes de incorporá-lo
     };
 
-    websocket.send(JSON.stringify(message));
-
-    chatInput.value = "";
+    websocket.send(JSON.stringify(message)); // Envia a mensagem apenas se o conteúdo for válido
+    chatInput.value = ""; // Limpa o campo de entrada
 };
 
 // Elementos de login
@@ -88,37 +130,37 @@ const user = { id: "", name: "", color: "" };
 
 let websocket;
 
+// Função para criar uma mensagem do usuário (próprio)
 const createMessageSelfElement = (content) => {
     const div = document.createElement("div");
-
     div.classList.add("message--self");
     div.innerHTML = content;
-
     return div;
 };
 
+// Função para criar uma mensagem de outro usuário
 const createMessageOtherElement = (content, sender, senderColor) => {
     const div = document.createElement("div");
     const span = document.createElement("span");
 
     div.classList.add("message--other");
-
     span.classList.add("message--sender");
     span.style.color = senderColor;
 
     div.appendChild(span);
-
     span.innerHTML = sender;
     div.innerHTML += content;
 
     return div;
 };
 
+// Função para obter uma cor aleatória
 const getRandomColor = () => {
     const randomIndex = Math.floor(Math.random() * colors.length);
     return colors[randomIndex];
 };
 
+// Função para rolar para a tela do chat
 const scrollScreen = () => {
     window.scrollTo({
         top: document.body.scrollHeight,
@@ -126,23 +168,22 @@ const scrollScreen = () => {
     });
 };
 
+// Função para tocar som de notificação
 const playNotificationSound = () => {
     const audio = new Audio("./sounds/aviso.mp3");
     audio.play();
 };
 
+// Função para processar a mensagem recebida
 const processMessage = ({ data }) => {
     const { userId, userName, userColor, content } = JSON.parse(data);
-
     const isCurrentUser = userId === user.id;
 
-    // Modificando a cor do texto da mensagem dependendo do remetente
     const message = isCurrentUser ? 
         createMessageSelfElement(content) : 
         createMessageOtherElement(content, userName, userColor);
 
     chatMessages.appendChild(message);
-
     scrollScreen();
 
     if (!isCurrentUser) {
@@ -151,6 +192,7 @@ const processMessage = ({ data }) => {
     }
 };
 
+// Função para lidar com o login
 const handleLogin = (event) => {
     event.preventDefault();
 
@@ -164,7 +206,7 @@ const handleLogin = (event) => {
     websocket = new WebSocket("wss://chat-niha.onrender.com");
     websocket.onmessage = processMessage;
     websocket.onopen = () => {
-        console.log("ConexÃ£o WebSocket estabelecida com sucesso.");
+        console.log("Conexão WebSocket estabelecida com sucesso.");
 
         const entryMessage = {
             userId: user.id,
@@ -178,7 +220,7 @@ const handleLogin = (event) => {
     };
 };
 
-// Remove todos os cookies
+// Remove todos os cookies ao sair da página
 window.addEventListener("beforeunload", () => {
     const cookies = document.cookie.split(";");
 
@@ -190,10 +232,10 @@ window.addEventListener("beforeunload", () => {
     }
 });
 
-// Adiciona um event listener para o evento de erro de conexÃ£o com o servidor
+// Adiciona um event listener para o formulário de login
 loginForm.addEventListener("submit", handleLogin);
 
-// Adiciona um event listener para o input de arquivo para enviar automaticamente a mensagem ao selecionar um arquivo
+// Adiciona um event listener para o input de arquivo
 const fileInput = document.getElementById('file');
 fileInput.addEventListener('change', () => {
     const file = fileInput.files[0];
@@ -202,8 +244,7 @@ fileInput.addEventListener('change', () => {
     reader.onload = () => {
         let content;
         if (file.type.startsWith('image/')) {
-            // Limita a largura da imagem a 200px
-            content = `<img src="${reader.result}" alt="Imagem do usuÃ¡rio" style="max-width: 200px; height: auto;">`;
+            content = `<img src="${reader.result}" alt="Imagem do usuário" style="max-width: 200px; height: auto;">`;
         } else if (file.type.startsWith('video/')) {
             content = `<video controls style="max-width: 200px; height: auto;">
                           <source src="${reader.result}" type="${file.type}">
@@ -225,10 +266,10 @@ fileInput.addEventListener('change', () => {
     }
 });
 
-// Adiciona um event listener para o formulÃ¡rio de envio de mensagem
+// Adiciona um event listener para o formulário de envio de mensagem
 chatForm.addEventListener('submit', sendMessage);
 
-// FunÃ§Ã£o para verificar o tamanho do arquivo de vÃ­deo
+// Função para verificar o tamanho do arquivo de vídeo
 const handleVideoUpload = (event) => {
     event.preventDefault();
 
@@ -258,8 +299,25 @@ const handleVideoUpload = (event) => {
     }
 };
 
-// Adiciona um event listener para o formulÃ¡rio de upload de vÃ­deo
+// Adiciona um event listener para o formulário de upload de vídeo
 const videoUploadForm = document.getElementById('video-upload-form');
 videoUploadForm.addEventListener('submit', handleVideoUpload);
 
- document.addEventListener("DOMContentLoaded", function () { document.addEventListener("mousedown", function (event) { if (event.target.id === "img_user") { event.preventDefault(); abrirImagemTelaCheia(event.target.src); } }); function abrirImagemTelaCheia(src) { const overlay = document.createElement("div"); overlay.style = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999;"; overlay.innerHTML = ``; overlay.addEventListener("click", () => overlay.remove()); document.body.appendChild(overlay); } });
+// Função para abrir a imagem em tela cheia
+document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("mousedown", function (event) {
+        if (event.target.id === "img_user") {
+            event.preventDefault();
+            abrirImagemTelaCheia(event.target.src);
+        }
+    });
+
+    function abrirImagemTelaCheia(src) {
+        const overlay = document.createElement("div");
+        overlay.style = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999;";
+        overlay.innerHTML = `<img src="${src}" style="max-width: 90vw; max-height: 90vh;">`;
+        overlay.addEventListener("click", () => overlay.remove());
+        document.body.appendChild(overlay);
+    }
+});
+//sanitization=false
