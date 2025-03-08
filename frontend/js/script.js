@@ -60,7 +60,7 @@ function sanitizeInput(input) {
     
     // Verifica se há tags maliciosas
     if (maliciousTags.test(input)) {
-        alert("Atenção: Conteúdo malicioso detectado!");
+        alert("Atenção: Scripts não são permitidos!");
         return null; // Retorna null para impedir o envio da mensagem
     }
 
