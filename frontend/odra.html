@@ -246,6 +246,26 @@
           </form>
     </section>
 </section>
+    <script>
+            function pedirPermissaoNotificacao() {
+
+                if ("Notification" in window) {
+                if (Notification.permission === "default") {
+                    Notification.requestPermission().then(function(permission) {
+                        if (permission === "granted") {
+                            console.log("Permissão concedida!");
+                        } else {
+                            console.log("Permissão negada.");
+                        }
+                    });
+                }
+            } else {
+                console.log("Notificações não são suportadas neste navegador.");
+            }
+        }
+
+        window.onload = pedirPermissaoNotificacao;
+</script>
 <script src="./js/script.js"></script>
 </body>
 </html>
