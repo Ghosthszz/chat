@@ -168,11 +168,22 @@ const scrollScreen = () => {
     });
 };
 
-// Função para tocar som de notificação
 const playNotificationSound = () => {
     const audio = new Audio("./sounds/aviso.mp3");
-    audio.play();
+    audio.play().catch(err => console.error("Erro ao tocar som:", err));
+
+    if (Notification.permission === "granted") {
+        new Notification("CHAT GHOSTHSZZ_", { body: "Você tem novas mensagens no chat!" });
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification("CHAT GHOSTHSZZ_", { body: "Você tem novas mensagens no chat!" });
+            }
+        });
+    }
 };
+
+
 
 // Função para processar a mensagem recebida
 const processMessage = ({ data }) => {
@@ -189,6 +200,7 @@ const processMessage = ({ data }) => {
     if (!isCurrentUser) {
         console.log("Nova mensagem recebida:", content);
         playNotificationSound();
+        new Notification();
     }
 };
 
@@ -306,6 +318,9 @@ videoUploadForm.addEventListener('submit', handleVideoUpload);
 // Função para abrir a imagem em tela cheia
 document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("mousedown", function (event) {
+        if (Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
         if (event.target.id === "img_user") {
             event.preventDefault();
             abrirImagemTelaCheia(event.target.src);
@@ -321,3 +336,5 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 //sanitization=false
+
+
