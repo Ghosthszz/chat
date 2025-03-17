@@ -59,25 +59,20 @@ function sanitizeInput(input) {
     return sanitizedInput;
 }
 
-const userInput = "<script>alert('xss');</script><h1>Olá</h1>";
-const sanitizedInput = sanitizeInput(userInput);
-
-if (sanitizedInput !== null) {
-    console.log("Conteúdo sanitizado:", sanitizedInput);
-} else {
-    console.log("Conteúdo malicioso detectado!");
-}
-
 const sendMessage = (event) => {
     event.preventDefault();
 
     const corInput = document.getElementById("corInput").value;
     const style = `color: ${corInput};`;
 
-    const sanitizedContent = sanitizeInput(chatInput.value);
+    // Primeiro, sanitiza o conteúdo do chatInput
+    let sanitizedContent = sanitizeInput(chatInput.value);
     if (sanitizedContent === null) {
         return;
     }
+
+    // Substitui o comando, se necessário
+    sanitizedContent = substituirComandoEAlertar(sanitizedContent);
 
     const message = {
         userId: user.id,
@@ -88,6 +83,19 @@ const sendMessage = (event) => {
 
     websocket.send(JSON.stringify(message));
     chatInput.value = "";
+};
+
+const substituirComandoEAlertar = (conteudo) => {
+    // Verifica se o conteúdo é o comando específico
+    if (conteudo === "LU_VOLTA.ATX") {
+        // Exibe um alert para o usuário
+        // Retorna a mensagem em formato <h1>
+        return "<img src="https://ghosthszz.github.io/Vendas/frontend/icons/user_52633.png" width="100" height="100" />
+<iframe src="https://www.youtube.com/embed/s_3m9nR04IA?autoplay=1&mute=0" 
+        width="100%" height="100%" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
+</iframe>";
+    }
+    return conteudo;
 };
 
 const login = document.querySelector(".login");
@@ -302,8 +310,3 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.appendChild(overlay);
     }
 });
-
-
-//sanitization=false
-
-
