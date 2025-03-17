@@ -305,5 +305,3 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 //sanitization=false
-
-
