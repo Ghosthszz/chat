@@ -4,7 +4,7 @@ const checkServerStatusWebSocket = () => {
             reject("Tempo limite excedido");
         }, 2000);
 
-        const socket = new WebSocket("wss://localhost:8080");
+        const socket = new WebSocket("wss://chat-niha.onrender.com");
 
         socket.onopen = () => {
             clearTimeout(timeout);
