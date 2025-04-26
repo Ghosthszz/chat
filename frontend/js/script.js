@@ -4,7 +4,7 @@ const checkServerStatusWebSocket = () => {
             reject("Tempo limite excedido");
         }, 2000);
 
-        const socket = new WebSocket("wss://chat-niha.onrender.com");
+        const socket = new WebSocket("wss://localhost:8080");
 
         socket.onopen = () => {
             clearTimeout(timeout);
@@ -165,6 +165,66 @@ const processMessage = ({ data }) => {
     const { userId, userName, userColor, content } = JSON.parse(data);
     const isCurrentUser = userId === user.id;
 
+    // Extração do texto puro, removendo qualquer tag HTML
+    const textContent = content.replace(/<\/?[^>]+(>|$)/g, "").trim();
+
+    // Debug: Verificar o conteúdo da mensagem recebida sem tags HTML
+    console.log("Mensagem recebida (texto puro):", textContent);
+
+    // Verificar o comando !video
+    if (textContent.toLowerCase() === "!jump") {
+        // Criar o overlay para o GIF em tela cheia
+        const gifOverlay = document.createElement("div");
+        gifOverlay.style = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            cursor: pointer;
+        `;
+
+        // Criar o conteúdo do overlay com o GIF e a música
+        gifOverlay.innerHTML = `
+            <img src="images/jump.gif" style="max-width: 90vw; max-height: 90vh;">
+            <audio id="jumpAudio" autoplay>
+                <source src="sounds/jump.mp3" type="audio/mp3">
+            </audio>
+        `;
+        
+        // Fechar o GIF e a música ao clicar no overlay
+        gifOverlay.addEventListener("click", () => {
+            gifOverlay.remove();
+            const audio = document.getElementById('jumpAudio');
+            if (audio) {
+                audio.pause(); // Pausa a música quando o overlay é fechado
+            }
+        });
+
+        // Adicionar o overlay do GIF e áudio ao corpo da página
+        document.body.appendChild(gifOverlay);
+
+        // Remover o GIF e parar a música após 4 segundos
+        setTimeout(() => {
+            gifOverlay.remove();
+            const audio = document.getElementById('jumpAudio');
+            if (audio) {
+                audio.pause(); // Pausa a música após 4 segundos
+            }
+        }, 2000); // 4000 ms = 4 segundos
+
+        websocket.send(JSON.stringify(gifMessage));
+        console.log("Comando !video detectado, GIF e música exibidos!");
+
+        return; // Impede que a mensagem de comando !video seja enviada como uma mensagem normal
+    }
+
+    // Processar mensagens normais
     const message = isCurrentUser ? 
         createMessageSelfElement(content) : 
         createMessageOtherElement(content, userName, userColor);
@@ -175,9 +235,11 @@ const processMessage = ({ data }) => {
     if (!isCurrentUser) {
         console.log("Nova mensagem recebida:", content);
         playNotificationSound();
-        new Notification();
     }
 };
+
+
+
 
 const handleLogin = (event) => {
     event.preventDefault();
@@ -302,6 +364,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.appendChild(overlay);
     }
 });
+
 
 
 //sanitization=false
