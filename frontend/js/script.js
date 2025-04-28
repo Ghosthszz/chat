@@ -172,7 +172,7 @@ const processMessage = ({ data }) => {
     console.log("Mensagem recebida (texto puro):", textContent);
 
     // Verificar o comando !video
-    if (textContent.toLowerCase() === "!jump") {
+    if (textContent.toLowerCase() === "!blk") {
         // Criar o overlay para o GIF em tela cheia
         const gifOverlay = document.createElement("div");
         gifOverlay.style = `
