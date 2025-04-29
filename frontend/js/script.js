@@ -168,12 +168,10 @@ const processMessage = ({ data }) => {
     // Extração do texto puro, removendo qualquer tag HTML
     const textContent = content.replace(/<\/?[^>]+(>|$)/g, "").trim();
 
-    // Debug: Verificar o conteúdo da mensagem recebida sem tags HTML
     console.log("Mensagem recebida (texto puro):", textContent);
 
-    // Verificar o comando !video
+    // Verificar o comando !blk (GIF)
     if (textContent.toLowerCase() === "!blk") {
-        // Criar o overlay para o GIF em tela cheia
         const gifOverlay = document.createElement("div");
         gifOverlay.style = `
             position: fixed;
@@ -189,42 +187,75 @@ const processMessage = ({ data }) => {
             cursor: pointer;
         `;
 
-        // Criar o conteúdo do overlay com o GIF e a música
         gifOverlay.innerHTML = `
             <img src="images/jump.gif" style="max-width: 90vw; max-height: 90vh;">
             <audio id="jumpAudio" autoplay>
                 <source src="sounds/jump.mp3" type="audio/mp3">
             </audio>
         `;
-        
-        // Fechar o GIF e a música ao clicar no overlay
+
         gifOverlay.addEventListener("click", () => {
             gifOverlay.remove();
             const audio = document.getElementById('jumpAudio');
-            if (audio) {
-                audio.pause(); // Pausa a música quando o overlay é fechado
-            }
+            if (audio) audio.pause();
         });
 
-        // Adicionar o overlay do GIF e áudio ao corpo da página
         document.body.appendChild(gifOverlay);
 
-        // Remover o GIF e parar a música após 4 segundos
         setTimeout(() => {
             gifOverlay.remove();
             const audio = document.getElementById('jumpAudio');
-            if (audio) {
-                audio.pause(); // Pausa a música após 4 segundos
-            }
-        }, 2000); // 4000 ms = 4 segundos
+            if (audio) audio.pause();
+        }, 1500); // 4 segundos
 
         websocket.send(JSON.stringify(gifMessage));
-        console.log("Comando !video detectado, GIF e música exibidos!");
-
-        return; // Impede que a mensagem de comando !video seja enviada como uma mensagem normal
+        console.log("Comando !blk detectado, GIF e música exibidos!");
+        return;
     }
 
-    // Processar mensagens normais
+    // Verificar o comando !blkk (Imagem com transição)
+    if (textContent.toLowerCase() === "!blkk") {
+        const photoOverlay = document.createElement("div");
+        photoOverlay.style = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            cursor: pointer;
+        `;
+
+        photoOverlay.innerHTML = `
+            <img src="images/gm.png" style="max-width: 90vw; max-height: 90vh; opacity: 0; transform: scale(0.8); animation: imgShow 1s forwards;">
+            <audio id="jumpAudio" autoplay>
+                <source src="sounds/gm.mp3" type="audio/mp3">
+            </audio>
+        `;
+
+        photoOverlay.addEventListener("click", () => {
+            photoOverlay.remove();
+            const audio = document.getElementById('jumpAudio');
+            if (audio) audio.pause();
+        });
+
+        document.body.appendChild(photoOverlay);
+
+        setTimeout(() => {
+            photoOverlay.remove();
+            // Áudio continua tocando
+        }, 5000);
+
+        websocket.send(JSON.stringify(gifMessage));
+        console.log("Comando !blkk detectado, imagem e áudio exibidos!");
+        return;
+    }
+
+    // Mensagem normal
     const message = isCurrentUser ? 
         createMessageSelfElement(content) : 
         createMessageOtherElement(content, userName, userColor);
@@ -237,6 +268,7 @@ const processMessage = ({ data }) => {
         playNotificationSound();
     }
 };
+
 
 
 
