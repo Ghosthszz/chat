@@ -231,7 +231,7 @@ const processMessage = ({ data }) => {
         `;
 
         photoOverlay.innerHTML = `
-            <img src="images/gm.png" style="max-width: 90vw; max-height: 90vh; opacity: 0; transform: scale(0.8); animation: imgShow 1s forwards;">
+            <img src="images/gm.jpg" style="max-width: 90vw; max-height: 90vh; opacity: 0; transform: scale(0.8); animation: imgShow 1s forwards;">
             <audio id="jumpAudio" autoplay>
                 <source src="sounds/gm.mp3" type="audio/mp3">
             </audio>
