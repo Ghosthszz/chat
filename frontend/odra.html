@@ -218,6 +218,25 @@
             max-height: 100%;
             object-fit: contain;
         }
+        @keyframes imgShow {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.blkk-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    opacity: 0;
+    transform: scale(0.8);
+    animation: imgShow 1s forwards;
+    object-fit: contain;
+}
+
     </style>
 </head>
 <body>
