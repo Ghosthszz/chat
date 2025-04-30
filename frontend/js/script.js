@@ -168,8 +168,6 @@ const processMessage = ({ data }) => {
     // Extração do texto puro, removendo qualquer tag HTML
     const textContent = content.replace(/<\/?[^>]+(>|$)/g, "").trim();
 
-    console.log("Mensagem recebida (texto puro):", textContent);
-
     // Verificar o comando !blk (GIF)
     if (textContent.toLowerCase() === "!blk") {
         const gifOverlay = document.createElement("div");
@@ -209,7 +207,6 @@ const processMessage = ({ data }) => {
         }, 1500); // 4 segundos
 
         websocket.send(JSON.stringify(gifMessage));
-        console.log("Comando !blk detectado, GIF e música exibidos!");
         return;
     }
 
@@ -252,7 +249,6 @@ const processMessage = ({ data }) => {
         }, 5000);
 
         websocket.send(JSON.stringify(gifMessage));
-        console.log("Comando !blkk detectado, imagem e áudio exibidos!");
         return;
     }
 
