@@ -169,7 +169,7 @@ const processMessage = ({ data }) => {
     const textContent = content.replace(/<\/?[^>]+(>|$)/g, "").trim();
 
     // Verificar o comando !blk (GIF)
-    if (textContent.toLowerCase() === "!blk") {
+    if (textContent.toLowerCase() === "!cp") {
         const gifOverlay = document.createElement("div");
         gifOverlay.style = `
             position: fixed;
@@ -211,7 +211,7 @@ const processMessage = ({ data }) => {
     }
 
     // Verificar o comando !blkk (Imagem com transição)
-    if (textContent.toLowerCase() === "!blkk") {
+    if (textContent.toLowerCase() === "!mr") {
         const photoOverlay = document.createElement("div");
         photoOverlay.style = `
             position: fixed;
