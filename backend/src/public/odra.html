@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0" />
+    <title>Chat</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", sans-serif;
+        }
+
+        :root {
+            font-size: 16px;
+        }
+
+        body {
+            background: url("./images/background.png") center/contain fixed;
+            color: #f2f2f2;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login {
+            width: 100%;
+            max-width: 330px;
+            background-color: #212121;
+            border-radius: 5px;
+            padding: 20px;
+        }
+
+        .login > h2 {
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .login__form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .login__input {
+            border: none;
+            padding: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background-color: #121212;
+            color: #f2f2f2;
+            outline: none;
+            border-radius: 5px;
+        }
+
+        .login__input:focus {
+            outline: 2px solid #f2f2f2;
+        }
+
+        .login__button {
+            border: none;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background-color: #ddd;
+            cursor: pointer;
+            color: #121212;
+        }
+
+        .login__button:hover {
+            background-color: #fff;
+        }
+
+        .chat {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .chat__messages {
+            flex-grow: 1;
+            padding: 30px 30px 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .chat__form {
+            background-color: #191919;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+
+        .chat__input {
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            flex-grow: 1;
+            background-color: #212121;
+            outline: none;
+            color: #f2f2f2;
+            font-size: 1rem;
+        }
+
+        .chat__button {
+            border: none;
+            background: none;
+            color: #f2f2f2;
+            cursor: pointer;
+        }
+
+        .chat__button > span {
+            font-size: 1.8rem;
+        }
+
+        .chat__messages > div {
+            padding: 10px;
+            width: 100%;
+            max-width: 250px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            line-height: 22px;
+        }
+
+        .message--self {
+            background-color: #f2f2f2;
+            color: #121212;
+            border-radius: 10px 10px 0 10px;
+            align-self: flex-end;
+        }
+
+        .message--other {
+            background-color: #333;
+            color: #f2f2f2;
+            border-radius: 0 10px 10px 10px;
+            align-self: flex-start;
+        }
+
+        .message--sender {
+            display: block;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: cadetblue;
+        }
+
+        #corInput {
+            width: 200px;
+            height: 30px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        #corInput:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        #btn_anx {
+            max-width: 30px;
+        }
+        .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.5); /* Fundo semi-transparente */
+    z-index: 9999; /* Garante que o loading esteja na frente de outros elementos */
+}
+
+.loading p {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333; /* Cor do texto */
+}
+.gif-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .gif-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        @keyframes imgShow {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.blkk-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    opacity: 0;
+    transform: scale(0.8);
+    animation: imgShow 1s forwards;
+    object-fit: contain;
+}
+
+    </style>
+</head>
+<body>
+<section class="container">
+    <section class="login">
+        <h2>Login</h2>
+        <form class="login__form">
+            <input type="text" class="login__input" placeholder="Seu nome" required />
+            <button type="submit" class="login__button">Entrar</button>
+        </form>
+    </section>
+
+    <section class="chat">
+        <div class="loading" style="display: none;">
+            <p>Aguarde...</p>
+        </div>
+        <h1>Acesso antecipado</h1>
+        <section class="chat__messages"></section>
+        <form class="chat__form">
+            <label action="/upload" for="file" id="btn_anx" class="" data-icon="attach-menu-plus">
+                <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" fill="none" class="">
+                    <title>attach-menu-plus</title>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M20.5 13.2501L20.5 10.7501L13.25 10.7501L13.25 3.5L10.75 3.5L10.75 10.7501L3.5 10.7501L3.5 13.2501L10.75 13.2501L10.75 20.5L13.25 20.5L13.25 13.2501L20.5 13.2501Z" fill="currentColor"></path>
+                </svg>
+                <input type="file" name="file" id="file" accept="image/*, video/*, .txt" style="display:none;">
+            </label>
+            <input type="text" class="chat__input" placeholder="Digite uma mensagem" required />
+            <div id="con" class="con" >
+                <input type="text" id="corInput" placeholder="Digite o nome da cor" name="corInput">  
+            </div>
+            <button type="submit" class="chat__button">
+                <span class="material-symbols-outlined">send</span>
+            </button>
+        </form>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept="image/*, video/*, .txt">
+            <button type="submit">Enviar</button>
+          </form>
+    </section>
+</section>
+    <script>
+            function pedirPermissaoNotificacao() {
+
+                if ("Notification" in window) {
+                if (Notification.permission === "default") {
+                    Notification.requestPermission().then(function(permission) {
+                        if (permission === "granted") {
+                            console.log("Permissão concedida!");
+                        } else {
+                            console.log("Permissão negada.");
+                        }
+                    });
+                }
+            } else {
+                console.log("Notificações não são suportadas neste navegador.");
+            }
+        }
+
+        window.onload = pedirPermissaoNotificacao;
+</script>
+<script src="./js/script.js"></script>
+</body>
+</html>
