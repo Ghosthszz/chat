@@ -210,7 +210,6 @@ const processMessage = ({ data }) => {
         return;
     }
 
-    // Verificar o comando !blkk (Imagem com transição)
     if (textContent.toLowerCase() === "!mr") {
         const photoOverlay = document.createElement("div");
         photoOverlay.style = `
@@ -251,6 +250,7 @@ const processMessage = ({ data }) => {
         websocket.send(JSON.stringify(gifMessage));
         return;
     }
+    
 
     // Mensagem normal
     const message = isCurrentUser ? 
