@@ -1,103 +1,10 @@
-const checkServerStatusWebSocket = () => {
-    return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-            reject("Tempo limite excedido");
-        }, 2000);
+/*************************
+ * VARIÁVEIS GLOBAIS
+ *************************/
+let websocket;
+let ytPlayerDiv = null;
+let iframeAvancado = false;
 
-        const socket = new WebSocket("wss://chat-niha.onrender.com");
-
-        socket.onopen = () => {
-            clearTimeout(timeout);
-            socket.close();
-            resolve(true);
-            document.cookie = "server=true";
-        };
-
-        const handleLoginError = (event) => {
-            event.preventDefault();
-            alert("Iniciando servidores, aguarde...");
-        };
-
-        socket.onerror = () => {
-            clearTimeout(timeout);
-            reject("Erro ao conectar ao servidor");
-            loginForm.removeEventListener("submit", handleLogin);
-            loginForm.addEventListener("submit", handleLoginError);
-        };
-    });
-};
-
-const handlePageLoad = async () => {
-    try {
-        await checkServerStatusWebSocket();
-
-        const loginSection = document.querySelector(".login");
-        loginSection.style.display = "block";
-    } catch (error) {
-        console.error(error);
-    }
-};
-
-function isSanitizationEnabled() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('sanitization') !== 'false';
-}
-
-function sanitizeInput(input) {
-    if (!isSanitizationEnabled()) {
-        return input;
-    }
-
-    const maliciousTags = /<(script|iframe|object|embed|style|link|a|img|h1|h2|h3|h4|h5|h6|div).*?>/gi;
-
-    if (maliciousTags.test(input)) {
-        alert("Atenção: Scripts não são permitidos!");
-        return null;
-    }
-
-    const sanitizedInput = input.replace(maliciousTags, "");
-    return sanitizedInput;
-}
-
-const userInput = "<script>alert('xss');</script><h1>Olá</h1>";
-const sanitizedInput = sanitizeInput(userInput);
-
-if (sanitizedInput !== null) {
-    console.log("Conteúdo sanitizado:", sanitizedInput);
-} else {
-    console.log("Conteúdo malicioso detectado!");
-}
-
-const sendMessage = (event) => {
-    event.preventDefault();
-
-    const corInput = document.getElementById("corInput").value;
-    const style = `color: ${corInput};`;
-
-    const sanitizedContent = sanitizeInput(chatInput.value);
-    if (sanitizedContent === null) {
-        return;
-    }
-
-    const message = {
-        userId: user.id,
-        userName: user.name,
-        userColor: user.color,
-        content: `<h1 style="${style}">${sanitizedContent}</h1>`
-    };
-
-    websocket.send(JSON.stringify(message));
-    chatInput.value = "";
-};
-
-const login = document.querySelector(".login");
-const loginForm = login.querySelector(".login__form");
-const loginInput = login.querySelector(".login__input");
-
-const chat = document.querySelector(".chat");
-const chatForm = chat.querySelector(".chat__form");
-const chatInput = chat.querySelector(".chat__input");
-const chatMessages = chat.querySelector(".chat__messages");
 
 const colors = [
     "cadetblue",
@@ -110,167 +17,242 @@ const colors = [
 
 const user = { id: "", name: "", color: "" };
 
-let websocket;
+/*************************
+ * DOM ELEMENTS
+ *************************/
+const login = document.querySelector(".login");
+const loginForm = login.querySelector(".login__form");
+const loginInput = login.querySelector(".login__input");
 
-const createMessageSelfElement = (content) => {
-    const div = document.createElement("div");
-    div.classList.add("message--self");
-    div.innerHTML = content;
-    return div;
-};
+const chat = document.querySelector(".chat");
+const chatForm = chat.querySelector(".chat__form");
+const chatInput = chat.querySelector(".chat__input");
+const chatMessages = chat.querySelector(".chat__messages");
 
-const createMessageOtherElement = (content, sender, senderColor) => {
-    const div = document.createElement("div");
-    const span = document.createElement("span");
+/*************************
+ * HELPERS
+ *************************/
+const getRandomColor = () => colors[Math.floor(Math.random() * colors.length)];
 
-    div.classList.add("message--other");
-    span.classList.add("message--sender");
-    span.style.color = senderColor;
+const scrollScreen = () => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 
-    div.appendChild(span);
-    span.innerHTML = sender;
-    div.innerHTML += content;
+const isSanitizationEnabled = () =>
+    new URLSearchParams(window.location.search).get("sanitization") !== "false";
 
-    return div;
-};
+function sanitizeInput(input) {
+    if (!isSanitizationEnabled()) return input;
 
-const getRandomColor = () => {
-    const randomIndex = Math.floor(Math.random() * colors.length);
-    return colors[randomIndex];
-};
-
-const scrollScreen = () => {
-    window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: "smooth"
-    });
-};
+    const forbidden = /<(script|iframe|object|embed|style|link|a|img|h1|h2|h3|h4|h5|h6|div).*?>/gi;
+    if (forbidden.test(input)) {
+        alert("Atenção: Scripts não são permitidos!");
+        return null;
+    }
+    return input.replace(forbidden, "");
+}
 
 const playNotificationSound = () => {
-    const audio = new Audio("./sounds/aviso.mp3");
-    audio.play().catch(err => console.error("Erro ao tocar som:", err));
+    new Audio("./sounds/aviso.mp3").play().catch(() => {});
 
     if (Notification.permission === "granted") {
         new Notification("CHAT GHOSTHSZZ_", { body: "Você tem novas mensagens no chat!" });
     } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                new Notification("CHAT GHOSTHSZZ_", { body: "Você tem novas mensagens no chat!" });
-            }
+        Notification.requestPermission().then(p => {
+            if (p === "granted") new Notification("CHAT GHOSTHSZZ_", { body: "Você tem novas mensagens no chat!" });
         });
     }
 };
 
-const processMessage = ({ data }) => {
-    const { userId, userName, userColor, content } = JSON.parse(data);
-    const isCurrentUser = userId === user.id;
+/*************************
+ * MENSAGENS
+ *************************/
+const createMessageSelfElement = content => {
+    const div = document.createElement("div");
+    div.className = "message--self";
+    div.innerHTML = content;
+    return div;
+};
 
-    // Extração do texto puro, removendo qualquer tag HTML
+const createMessageOtherElement = (content, sender, color) => {
+    const div = document.createElement("div");
+    div.className = "message--other";
+
+    const span = document.createElement("span");
+    span.className = "message--sender";
+    span.style.color = "color";
+    span.style.fontSize = '10px'
+    span.innerHTML = sender;
+
+    div.appendChild(span);
+    div.innerHTML += content;
+    return div;
+};
+
+/*************************
+ * YOUTUBE PLAYER
+ *************************/
+function criarOuAtualizarPlayer(videoId) {
+    if (!ytPlayerDiv) {
+        ytPlayerDiv = document.createElement("div");
+        ytPlayerDiv.className = "youtube-player";
+        document.body.appendChild(ytPlayerDiv);
+    }
+
+    const origin = window.location.origin;
+
+    ytPlayerDiv.innerHTML = `
+        <iframe
+            width="560"
+            height="315"
+            src="https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${origin}&autoplay=1&mute=1"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+        </iframe>
+    `;
+}
+
+function controlarPlayer(action) {
+    if (!ytPlayerDiv) return;
+
+    if (action === "close") {
+        ytPlayerDiv.remove();
+        ytPlayerDiv = null;
+        iframeAvancado = false;
+    }
+
+    if (action === "change") {
+        iframeAvancado = false;
+        abrirModalIframe();
+    }
+}
+
+function extrairVideoId(url) {
+    try {
+        const u = new URL(url);
+        if (u.hostname.includes("youtu.be")) return u.pathname.slice(1);
+        if (u.searchParams.get("v")) return u.searchParams.get("v");
+    } catch {}
+    return null;
+}
+
+
+/*************************
+ * MODAL IFRAME
+ *************************/
+function controlesAvancadosHTML() {
+    return `
+        <button data-action="pause">⏸ Pausar</button>
+        <button data-action="play">▶️ Play</button>
+        <button data-action="change">⏭ Trocar</button>
+        <button data-action="close">❌ Fechar</button>
+    `;
+}
+
+function bindControlesAvancados(modal) {
+    modal.querySelectorAll("button").forEach(btn => {
+        btn.onclick = () => {
+            websocket.send(JSON.stringify({
+                type: "IFRAME_CONTROL",
+                action: btn.dataset.action
+            }));
+            modal.remove();
+        };
+    });
+}
+
+function abrirModalIframe() {
+    const modal = document.createElement("div");
+    modal.style = `
+        position: fixed; inset:0;
+        background: rgba(0,0,0,.7);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 10000;
+    `;
+
+    modal.innerHTML = `
+        <div style="background:#212121;padding:20px;border-radius:10px;width:300px;">
+            <h3>🎵 Música YouTube</h3>
+            ${iframeAvancado ? controlesAvancadosHTML() : `
+                <input id="ytLink" placeholder="Link do YouTube" style="width:100%;padding:10px;">
+                <button id="playYT" style="width:100%;margin-top:10px">Reproduzir</button>
+            `}
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    modal.onclick = e => e.target === modal && modal.remove();
+
+    if (!iframeAvancado) {
+        document.getElementById("playYT").onclick = () => {
+            const videoId = extrairVideoId(document.getElementById("ytLink").value);
+            if (!videoId) return alert("Link inválido");
+
+            websocket.send(JSON.stringify({ type: "IFRAME_PLAY", videoId }));
+            iframeAvancado = true;
+            modal.remove();
+        };
+    } else {
+        bindControlesAvancados(modal);
+    }
+}
+
+/*************************
+ * PROCESSAMENTO DE MENSAGENS
+ *************************/
+const processMessage = ({ data }) => {
+    const payload = JSON.parse(data);
+
+    // Player YouTube
+    if (payload.type === "IFRAME_PLAY") {
+        criarOuAtualizarPlayer(payload.videoId);
+        return;
+    }
+
+    if (payload.type === "IFRAME_CONTROL") {
+        controlarPlayer(payload.action);
+        return;
+    }
+
+    const { userId, userName, userColor, content } = payload;
+    const isCurrentUser = userId === user.id;
     const textContent = content.replace(/<\/?[^>]+(>|$)/g, "").trim();
 
-    // Verificar o comando !blk (GIF)
+    // Comandos especiais
     if (textContent.toLowerCase() === "!cp") {
-        const gifOverlay = document.createElement("div");
-        gifOverlay.style = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            cursor: pointer;
-        `;
-
-        gifOverlay.innerHTML = `
-            <img src="images/jump.gif" style="max-width: 90vw; max-height: 90vh;">
-            <audio id="jumpAudio" autoplay>
-                <source src="sounds/jump.mp3" type="audio/mp3">
-            </audio>
-        `;
-
-        gifOverlay.addEventListener("click", () => {
-            gifOverlay.remove();
-            const audio = document.getElementById('jumpAudio');
-            if (audio) audio.pause();
-        });
-
-        document.body.appendChild(gifOverlay);
-
-        setTimeout(() => {
-            gifOverlay.remove();
-            const audio = document.getElementById('jumpAudio');
-            if (audio) audio.pause();
-        }, 1500); // 4 segundos
-
-        websocket.send(JSON.stringify(gifMessage));
+        const overlay = document.createElement("div");
+        overlay.style = `position: fixed; inset:0; background: rgba(0,0,0,.8); display:flex;align-items:center;justify-content:center; z-index:9999;`;
+        overlay.innerHTML = `<img src="images/jump.gif" style="max-width:90vw; max-height:90vh;"><audio id="jumpAudio" autoplay><source src="sounds/jump.mp3"></audio>`;
+        overlay.onclick = () => { overlay.remove(); document.getElementById('jumpAudio')?.pause(); };
+        document.body.appendChild(overlay);
+        setTimeout(() => { overlay.remove(); document.getElementById('jumpAudio')?.pause(); }, 1500);
         return;
     }
 
     if (textContent.toLowerCase() === "!mr") {
-        const photoOverlay = document.createElement("div");
-        photoOverlay.style = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            cursor: pointer;
-        `;
-
-        photoOverlay.innerHTML = `
-            <img src="images/gm.png" class="blkk-img">
-            <audio id="jumpAudio" autoplay>
-                <source src="sounds/gm.mp3" type="audio/mp3">
-            </audio>
-        `;
-
-
-        photoOverlay.addEventListener("click", () => {
-            photoOverlay.remove();
-            const audio = document.getElementById('jumpAudio');
-            if (audio) audio.pause();
-        });
-
-        document.body.appendChild(photoOverlay);
-
-        setTimeout(() => {
-            photoOverlay.remove();
-            // Áudio continua tocando
-        }, 5000);
-
-        websocket.send(JSON.stringify(gifMessage));
+        const overlay = document.createElement("div");
+        overlay.style = `position: fixed; inset:0; background: rgba(0,0,0,.8); display:flex;align-items:center;justify-content:center; z-index:9999;`;
+        overlay.innerHTML = `<img src="images/gm.png" style="max-width:90vw; max-height:90vh;"><audio id="jumpAudio" autoplay><source src="sounds/gm.mp3"></audio>`;
+        overlay.onclick = () => { overlay.remove(); document.getElementById('jumpAudio')?.pause(); };
+        document.body.appendChild(overlay);
+        setTimeout(() => { overlay.remove(); }, 5000);
         return;
     }
-    
 
     // Mensagem normal
-    const message = isCurrentUser ? 
-        createMessageSelfElement(content) : 
-        createMessageOtherElement(content, userName, userColor);
+    const message = isCurrentUser
+        ? createMessageSelfElement(content)
+        : createMessageOtherElement(content, userName, userColor);
 
     chatMessages.appendChild(message);
     scrollScreen();
 
-    if (!isCurrentUser) {
-        console.log("Nova mensagem recebida:", content);
-        playNotificationSound();
-    }
+    if (!isCurrentUser) playNotificationSound();
 };
 
-
-
-
-
-const handleLogin = (event) => {
+/*************************
+ * LOGIN
+ *************************/
+const handleLogin = event => {
     event.preventDefault();
 
     user.id = crypto.randomUUID();
@@ -282,118 +264,90 @@ const handleLogin = (event) => {
 
     websocket = new WebSocket("wss://chat-niha.onrender.com");
     websocket.onmessage = processMessage;
-    websocket.onopen = () => {
-        console.log("Conexão WebSocket estabelecida com sucesso.");
 
-        const entryMessage = {
+    websocket.onopen = () => {
+        websocket.send(JSON.stringify({
             userId: user.id,
-            userName: `<div style="display: inline-block; margin-right: 30px; border-radius: 90%;"><img src="images/sistema.png" alt="Teste" style="vertical-align: middle; width: 30px; height: 30px; margin-right: 10px;"> <h1 style="display: inline-block; vertical-align: middle; font-size: 15px; margin: 0;">Sistema</h1></div>`,
+            userName: `<div style="display:inline-block;margin-right:10px;"><img src="images/sistema.png" style="width:30px;height:30px;"></div> Sistema`,
             userColor: "#7D5AC1",
             content: `${user.name} entrou no chat!`
-        };
-
-        console.log("Enviando mensagem de entrada:", entryMessage);
-        websocket.send(JSON.stringify(entryMessage));
+        }));
     };
 };
 
-window.addEventListener("beforeunload", () => {
-    const cookies = document.cookie.split(";");
+/*************************
+ * ENVIO DE MENSAGENS
+ *************************/
+const sendMessage = event => {
+    event.preventDefault();
 
-    for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i];
-        const eqPos = cookie.indexOf("=");
-        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    // Comando especial para abrir modal do YouTube
+    if (chatInput.value.trim().toLowerCase() === "!iframe") {
+        abrirModalIframe();
+        chatInput.value = "";
+        return;
     }
-});
 
-loginForm.addEventListener("submit", handleLogin);
+    // Sanitização do input
+    const sanitized = sanitizeInput(chatInput.value);
+    if (sanitized === null) return;
 
-const fileInput = document.getElementById('file');
-fileInput.addEventListener('change', () => {
-    const file = fileInput.files[0];
+    // Pegar a cor escolhida pelo usuário
+const corInput = document.getElementById("corInput");
+const userColor = corInput?.value || "#6e40c9";
+
+
+    // Enviar mensagem pelo WebSocket com a cor selecionada
+    websocket.send(JSON.stringify({
+        userId: user.id,
+        userName: user.name,
+        userColor, // cor escolhida pelo usuário
+        content: `<h1 style="font-size: 20px; color: ${userColor};">${sanitized}</h1>`
+    }));
+
+    // Limpar input
+    chatInput.value = "";
+};
+
+
+/*************************
+ * ENVIO DE ARQUIVOS
+ *************************/
+document.getElementById('file')?.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
     const reader = new FileReader();
-
     reader.onload = () => {
-        let content;
-        if (file.type.startsWith('image/')) {
-            content = `<img src="${reader.result}" alt="Imagem do usuário" style="max-width: 200px; height: auto;">`;
-        } else if (file.type.startsWith('video/')) {
-            content = `<video controls style="max-width: 200px; height: auto;">
-                          <source src="${reader.result}" type="${file.type}">
-                       </video>`;
-        }
-
-        const message = {
+        let content = "";
+        if (file.type.startsWith("image/")) content = `<img src="${reader.result}" style="max-width:200px;">`;
+        if (file.type.startsWith("video/")) content = `<video controls style="max-width:200px;"><source src="${reader.result}" type="${file.type}"></video>`;
+        websocket.send(JSON.stringify({
             userId: user.id,
             userName: user.name,
             userColor: user.color,
-            content: content
-        };
-
-        websocket.send(JSON.stringify(message));
+            content
+        }));
     };
-
-    if (file) {
-        reader.readAsDataURL(file);
-    }
+    reader.readAsDataURL(file);
 });
 
-chatForm.addEventListener('submit', sendMessage);
+/*************************
+ * EVENTOS
+ *************************/
+loginForm.addEventListener("submit", handleLogin);
+chatForm.addEventListener("submit", sendMessage);
 
-const handleVideoUpload = (event) => {
-    event.preventDefault();
-
-    const videoFile = document.getElementById('video-file').files[0];
-    const maxSizeInMB = 200;
-
-    if (videoFile.size > maxSizeInMB * 1024 * 1024) {
-        document.getElementById('alert-message').textContent = "Escolha um ficheiro menor de 200 MB";
-    } else {
-        const reader = new FileReader();
-
-        reader.onload = () => {
-            const message = {
-                userId: user.id,
-                userName: user.name,
-                userColor: user.color,
-                content: `<video controls style="max-width: 200px; height: auto;">
-                            <source src="${reader.result}" type="${videoFile.type}"></video>`
-            };
-
-            websocket.send(JSON.stringify(message));
-        };
-
-        if (videoFile) {
-            reader.readAsDataURL(videoFile);
+document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("mousedown", e => {
+        if (e.target.id === "img_user") {
+            const overlay = document.createElement("div");
+            overlay.style = `position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:9999;`;
+            overlay.innerHTML = `<img src="${e.target.src}" style="max-width:90vw; max-height:90vh;">`;
+            overlay.onclick = () => overlay.remove();
+            document.body.appendChild(overlay);
         }
-    }
-};
 
-const videoUploadForm = document.getElementById('video-upload-form');
-videoUploadForm.addEventListener('submit', handleVideoUpload);
-
-document.addEventListener("DOMContentLoaded", function () {
-    document.addEventListener("mousedown", function (event) {
-        if (Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
-        if (event.target.id === "img_user") {
-            event.preventDefault();
-            abrirImagemTelaCheia(event.target.src);
-        }
+        if (Notification.permission !== "granted") Notification.requestPermission();
     });
-
-    function abrirImagemTelaCheia(src) {
-        const overlay = document.createElement("div");
-        overlay.style = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999;";
-        overlay.innerHTML = `<img src="${src}" style="max-width: 90vw; max-height: 90vh;">`;
-        overlay.addEventListener("click", () => overlay.remove());
-        document.body.appendChild(overlay);
-    }
 });
-
-
-
-//sanitization=false
