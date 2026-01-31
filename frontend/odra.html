@@ -102,6 +102,7 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
+            font-size: 50px;
         }
 
         .chat__form {
@@ -153,6 +154,7 @@
             color: #121212;
             border-radius: 10px 10px 0 10px;
             align-self: flex-end;
+            font-size: 100px;
         }
 
         .message--other {
@@ -167,6 +169,7 @@
             margin-bottom: 15px;
             font-weight: 700;
             color: cadetblue;
+            font-size: 10px;
         }
 
         #corInput {
@@ -235,6 +238,24 @@
     transform: scale(0.8);
     animation: imgShow 1s forwards;
     object-fit: contain;
+}
+.youtube-player {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    width: 320px;
+    height: 180px;
+    background: #000;
+    z-index: 9999;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,.6);
+}
+
+.youtube-player iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
 }
 
     </style>
