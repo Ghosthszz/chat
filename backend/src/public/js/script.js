@@ -79,7 +79,7 @@ const createMessageOtherElement = (content, sender, color) => {
     const span = document.createElement("span");
     span.className = "message--sender";
     span.style.color = "color";
-    span.style.fontSize = '10px'
+    span.style.fontSize = '15px'
     span.innerHTML = sender;
 
     div.appendChild(span);
