@@ -99,16 +99,39 @@ function criarOuAtualizarPlayer(videoId) {
 
     const origin = window.location.origin;
 
-    ytPlayerDiv.innerHTML = `
-        <iframe
-            width="560"
-            height="315"
-            src="https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${origin}&autoplay=1&mute=1"
-            frameborder="0"
-            allow="autoplay; encrypted-media"
-            allowfullscreen>
-        </iframe>
-    `;
+ytPlayerDiv.innerHTML = `
+    <div class="yt-header">
+        <span>🎧 Tocando agora</span>
+
+        <div class="yt-actions">
+            <button onclick="controlarPlayer('change')">⏭</button>
+            <button onclick="controlarPlayer('close')">✖</button>
+        </div>
+    </div>
+
+    <iframe
+        src="https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${origin}&autoplay=1"
+        allow="autoplay; encrypted-media"
+        allowfullscreen>
+    </iframe>
+
+    <button class="yt-sound-btn pulse"
+        onclick="desmutarPlayer(); this.remove();">
+        <span>🔊</span>
+        Ativar som
+    </button>
+`;
+
+}
+function desmutarPlayer() {
+    const iframe = ytPlayerDiv?.querySelector("iframe");
+    if (!iframe) return;
+
+    iframe.contentWindow.postMessage(JSON.stringify({
+        event: "command",
+        func: "unMute",
+        args: []
+    }), "*");
 }
 
 function controlarPlayer(action) {
@@ -169,15 +192,15 @@ function abrirModalIframe() {
         z-index: 10000;
     `;
 
-    modal.innerHTML = `
-        <div style="background:#212121;padding:20px;border-radius:10px;width:300px;">
-            <h3>🎵 Música YouTube</h3>
-            ${iframeAvancado ? controlesAvancadosHTML() : `
-                <input id="ytLink" placeholder="Link do YouTube" style="width:100%;padding:10px;">
-                <button id="playYT" style="width:100%;margin-top:10px">Reproduzir</button>
-            `}
-        </div>
-    `;
+modal.innerHTML = `
+    <div class="yt-modal">
+        <h3>🎵 YouTube Player</h3>
+        ${iframeAvancado ? controlesAvancadosHTML() : `
+            <input id="ytLink" placeholder="Cole o link do YouTube">
+            <button id="playYT">Reproduzir</button>
+        `}
+    </div>
+`;
 
     document.body.appendChild(modal);
     modal.onclick = e => e.target === modal && modal.remove();
@@ -347,6 +370,9 @@ document.addEventListener("DOMContentLoaded", () => {
             overlay.onclick = () => overlay.remove();
             document.body.appendChild(overlay);
         }
+document.addEventListener("click", () => {
+    desmutarPlayer();
+}, { once: true });
 
         if (Notification.permission !== "granted") Notification.requestPermission();
     });
