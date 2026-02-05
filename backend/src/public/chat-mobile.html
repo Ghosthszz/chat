@@ -1,4 +1,267 @@
-/*************************
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<title>Chat</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", sans-serif;
+}
+
+body {
+    background: url("./images/background.png") center/contain fixed;
+    color: #f2f2f2;
+    min-height: 100dvh;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+/* ===== LOGIN ===== */
+.login {
+    width: 100%;
+    max-width: 360px;
+    background: #1b1b1b;
+    padding: 24px;
+    border-radius: 12px;
+}
+
+.login h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login__form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.login__input {
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+    background: #121212;
+    color: #fff;
+}
+
+.login__button {
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+    background: #e5e5e5;
+    color: #000;
+    font-weight: 700;
+}
+
+/* ===== CHAT ===== */
+.chat {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+}
+
+/* ===== MESSAGES ===== */
+.chat__messages {
+    flex: 1;
+    padding: 16px;
+    padding-bottom: 90px;
+
+    overflow-y: auto;
+
+    display: flex;
+    flex-direction: column-reverse; /* 🔥 chave do problema */
+}
+
+.chat__messages > div {
+    min-width: 120px;          /* 🔥 tamanho mínimo */
+    min-height: 44px;          /* 🔥 altura mínima (visual melhor) */
+
+    padding: 12px 14px;
+    border-radius: 14px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.message--self {
+    background: #f2f2f2;
+    color: #000;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.message--other {
+    background: #2a2a2a;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+
+.message--sender {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: cadetblue;
+    margin-bottom: 6px;
+}
+
+/* ===== FORM FIXO ===== */
+.chat__form {
+    position: fixed;
+    bottom: env(safe-area-inset-bottom);
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    background: #141414;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.chat__input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 20px;
+    border: none;
+    background: #222;
+    color: #fff;
+}
+
+.chat__button {
+    background: none;
+    border: none;
+    color: #fff;
+}
+
+/* ===== FILE ===== */
+#btn_anx svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* ===== COLOR INPUT ===== */
+#corInput {
+    width: 110px;
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+}
+
+/* ===== LOADING ===== */
+.loading {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* ===== GIF / IMAGE ===== */
+.blkk-img {
+    max-width: 90vw;
+    max-height: 60vh;
+    border-radius: 12px;
+}
+
+/* ===== YOUTUBE PLAYER ===== */
+.youtube-player {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 380px;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 14px;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+.youtube-player iframe {
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== DESKTOP ===== */
+@media (min-width: 768px) {
+    .chat__messages {
+        padding: 30px;
+        padding-bottom: 110px;
+    }
+
+    .chat__messages div {
+        max-width: 420px;
+    }
+
+    .youtube-player {
+        left: auto;
+        right: 20px;
+        transform: none;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<section class="container">
+
+<section class="login">
+    <h2>Login</h2>
+    <form class="login__form">
+        <input type="text" class="login__input" placeholder="Seu nome" required>
+        <button class="login__button">Entrar</button>
+    </form>
+</section>
+
+<section class="chat">
+    <div class="loading" style="display:none">
+        <p>Aguarde...</p>
+    </div>
+
+    <section class="chat__messages"></section>
+
+    <form class="chat__form">
+<label action="/upload" for="file" id="btn_anx" class="" data-icon="attach-menu-plus">
+                <svg viewBox="0 0 24 24" height="24" width="24" preserveAspectRatio="xMidYMid meet" fill="none" class="">
+                    <title>attach-menu-plus</title>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M20.5 13.2501L20.5 10.7501L13.25 10.7501L13.25 3.5L10.75 3.5L10.75 10.7501L3.5 10.7501L3.5 13.2501L10.75 13.2501L10.75 20.5L13.25 20.5L13.25 13.2501L20.5 13.2501Z" fill="currentColor"></path>
+                </svg>
+                <input type="file" name="file" id="file" accept="image/*, video/*, .txt" style="display:none;">
+            </label>
+
+        <input class="chat__input" placeholder="Digite uma mensagem">
+
+        <button class="chat__button">
+            <span class="material-symbols-outlined">send</span>
+        </button>
+    </form>
+</section>
+
+</section>
+
+<script>
+    /*************************
  * VARIÁVEIS GLOBAIS
  *************************/
 let websocket;
@@ -34,7 +297,19 @@ const chatMessages = chat.querySelector(".chat__messages");
  *************************/
 const getRandomColor = () => colors[Math.floor(Math.random() * colors.length)];
 
-const scrollScreen = () => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+const scrollScreen = () => {
+    if (window.innerWidth <= 768) {
+        chatMessages.scrollTop = 0;
+        return;
+    }
+
+    // PC continua igual
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth"
+    });
+};
+
 
 const isSanitizationEnabled = () =>
     new URLSearchParams(window.location.search).get("sanitization") !== "false";
@@ -61,6 +336,11 @@ const playNotificationSound = () => {
         });
     }
 };
+function scrollChatToBottomMobile() {
+    if (window.innerWidth > 768) return; // PC não mexe
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
 /*************************
  * MENSAGENS
@@ -266,8 +546,10 @@ const processMessage = ({ data }) => {
         ? createMessageSelfElement(content)
         : createMessageOtherElement(content, userName, userColor);
 
-    chatMessages.appendChild(message);
-    scrollScreen();
+chatMessages.prepend(message);
+scrollScreen();
+
+
 
     if (!isCurrentUser) playNotificationSound();
 };
@@ -289,12 +571,23 @@ const handleLogin = event => {
     websocket.onmessage = processMessage;
 
     websocket.onopen = () => {
-        websocket.send(JSON.stringify({
-            userId: user.id,
-            userName: `<div style="display:inline-block;margin-right:10px;"><img src="images/sistema.png" style="width:30px;height:30px;"></div> Sistema`,
-            userColor: "#7D5AC1",
-            content: `${user.name} entrou no chat!`
-        }));
+websocket.send(JSON.stringify({
+    userId: "system",
+    userName: `
+        <div style="display:flex;align-items:center;gap:8px;">
+            <img src="images/sistema.png"
+                 style="width:28px;height:28px;border-radius:50%;">
+            <span style="font-weight:700;color:#7D5AC1;">Sistema</span>
+        </div>
+    `,
+    userColor: "#7D5AC1",
+    content: `
+        <div class="system-message-content" style="margin-top:6px;">
+            <strong>${user.name}</strong> entrou no chat
+        </div>
+    `
+}));
+
     };
 };
 
@@ -343,7 +636,7 @@ document.getElementById('file')?.addEventListener('change', e => {
     const reader = new FileReader();
     reader.onload = () => {
         let content = "";
-        if (file.type.startsWith("image/")) content = `<img src="${reader.result}" style="max-width:200px;">`;
+        if (file.type.startsWith("image/")) content = `<img src="${reader.result}" style="max-width:50px; max-height: 50px:">`;
         if (file.type.startsWith("video/")) content = `<video controls style="max-width:200px;"><source src="${reader.result}" type="${file.type}"></video>`;
         websocket.send(JSON.stringify({
             userId: user.id,
@@ -377,3 +670,7 @@ document.addEventListener("click", () => {
         if (Notification.permission !== "granted") Notification.requestPermission();
     });
 });
+
+</script>
+</body>
+</html>
