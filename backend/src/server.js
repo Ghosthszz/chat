@@ -14,23 +14,28 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "chat.html"));
 });
 
+
 // =====================
-// 🔎 ROTA DE STATUS
+// 🔎 STATUS DO SERVIDOR
 // =====================
 app.get("/status", (req, res) => {
   res.status(200).json({
     status: "ok",
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    timestamp: Date.now()
   });
 });
 
 // =====================
-// ▶️ ROTA ATIVAR
+// ⚡ ACORDAR SERVIDOR
 // =====================
-app.post("/ativar", (req, res) => {
-  console.log("⚡ Servidor ativado via /ativar");
+app.get("/wake", (req, res) => {
+  console.log("⚡ Servidor acordado via /wake");
+
   res.status(200).json({
-    started: true
+    woke: true,
+    message: "Servidor acordado com sucesso",
+    uptime: process.uptime()
   });
 });
 
