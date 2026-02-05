@@ -14,6 +14,26 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "chat.html"));
 });
 
+// =====================
+// 🔎 ROTA DE STATUS
+// =====================
+app.get("/status", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime()
+  });
+});
+
+// =====================
+// ▶️ ROTA ATIVAR
+// =====================
+app.post("/ativar", (req, res) => {
+  console.log("⚡ Servidor ativado via /ativar");
+  res.status(200).json({
+    started: true
+  });
+});
+
 const server = app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
 });
