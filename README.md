@@ -41,16 +41,14 @@ Ou clicle em "CODE" e baixe como zip.
 
 ### 3. Execute:
    ```bash
-   Execute o arquivo start.bat
+   Execute o arquivo start.bat e escolha a opção "3"
 
 # OBS: SE VOCÊ BAIXOU, NAO VAI SE CONECTAR A REDE PRINCIPAL, VAI SE CONECTAR A SUA, FICARA VISIVEL APENAS PARA TODOS A SUA INTERNET
 
 ### CONECTE - SE a nossa rede:
    ```bash
-   Execute WIN + R
+   Execute start.bat
 
-### E cole "%USERPROFILE%\Downloads\chat-main\chat-main\backend\src\public\js\script.js"
+### E selecione a opção "1"
 
-### Procure por "https://localhost:8080" e altere para "websocket = new WebSocket("wss://chat-niha.onrender.com");
-"
 
