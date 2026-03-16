@@ -26,9 +26,9 @@ echo.
 
 set /p opcao=Escolha uma opcao: 
 
-if "%opcao%"=="1" goto server
+if "%opcao%"=="3" goto server
 if "%opcao%"=="2" goto local
-if "%opcao%"=="3" goto start
+if "%opcao%"=="1" goto start
 if "%opcao%"=="4" goto installall
 if "%opcao%"=="0" exit
 goto menu
