@@ -336,24 +336,90 @@ const userColor = corInput?.value || "#6e40c9";
 /*************************
  * ENVIO DE ARQUIVOS
  *************************/
-document.getElementById('file')?.addEventListener('change', e => {
+document.getElementById('file')?.addEventListener('change', async e => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-        let content = "";
-        if (file.type.startsWith("image/")) content = `<img src="${reader.result}" style="max-width:200px;">`;
-        if (file.type.startsWith("video/")) content = `<video controls style="max-width:200px;"><source src="${reader.result}" type="${file.type}"></video>`;
+    const progressText = document.createElement("div");
+    progressText.style.position = "fixed";
+    progressText.style.bottom = "10px";
+    progressText.style.right = "10px";
+    progressText.style.background = "#000";
+    progressText.style.color = "#fff";
+    progressText.style.padding = "8px";
+    progressText.style.borderRadius = "6px";
+    progressText.innerText = "Processando 0%...";
+    document.body.appendChild(progressText);
+
+    if (file.type.startsWith("video/")) {
+
+        const chunkSize = 1024 * 1024 * 2; // 2MB
+        let offset = 0;
+        let chunks = [];
+
+        while (offset < file.size) {
+            const slice = file.slice(offset, offset + chunkSize);
+            const base64Chunk = await readChunk(slice);
+            chunks.push(base64Chunk);
+
+            offset += chunkSize;
+            const percent = Math.min(100, Math.round((offset / file.size) * 100));
+            progressText.innerText = `Processando ${percent}%...`;
+        }
+
+        const base64 = chunks.join("");
+
+        progressText.innerText = "Enviando...";
+
+        const content = `<video controls style="max-width:200px;">
+            <source src="data:${file.type};base64,${base64}" type="${file.type}">
+        </video>`;
+
         websocket.send(JSON.stringify({
             userId: user.id,
             userName: user.name,
             userColor: user.color,
             content
         }));
-    };
-    reader.readAsDataURL(file);
+
+        progressText.innerText = "100% enviado!";
+        setTimeout(() => progressText.remove(), 2000);
+
+    } else {
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            let content = "";
+
+            if (file.type.startsWith("image/")) {
+                content = `<img src="${reader.result}" style="max-width:200px;">`;
+            }
+
+            websocket.send(JSON.stringify({
+                userId: user.id,
+                userName: user.name,
+                userColor: user.color,
+                content
+            }));
+
+            progressText.remove();
+        };
+
+        reader.readAsDataURL(file);
+    }
 });
+
+function readChunk(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
 
 /*************************
  * EVENTOS
