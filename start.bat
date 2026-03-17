@@ -17,9 +17,9 @@ echo ===============================
 echo        CHAT ghosthszz_
 echo ===============================
 echo.
-echo 1 - Conectar ao server principal
+echo 1 - Iniciar app
 echo 2 - Mudar porta local
-echo 3 - Iniciar app
+echo 3 - Conectar ao server principal
 echo 4 - Instalar Node.js e dependencias
 echo 0 - Sair
 echo.
