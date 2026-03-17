@@ -285,7 +285,7 @@ const handleLogin = event => {
     login.style.display = "none";
     chat.style.display = "flex";
 
-    websocket = new WebSocket("wss://chat-niha.onrender.com");
+    websocket = new WebSocket("http://localhost:8080");
     websocket.onmessage = processMessage;
 
     websocket.onopen = () => {
